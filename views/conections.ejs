@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <link rel="stylesheet" href="styles.css">
+    <title>Conections</title>
+  
+</head>
+<body>  
+    
+ 
+    <div id='title'>
+        <h1> Conecciones Webservice Prestashop</h1>
+        <a class="showUsers" href="/users"  >Mostrar Usarios</a>
+    </div>
+    <% if ( message ) { %>
+        <% if ( message.type == 'error' ) { %>
+            <h4 class="error"> <%= message.text %> </h4>
+        <% } %>
+        <% if ( message.type == 'success' ) { %>
+            <h4 class="success"> <%= message.text %> </h4>
+        <% } %>
+      <% } %>
+    <div>
+        <form name="formConection" method='POST' action="/conections">
+            <input type="text" id="tag" name='tag' placeholder="insert tag"><br>
+            <input type="text" id="url" name='url' placeholder="insert url"><br>
+            <input type="text" id="token" name='token' placeholder="insert the token" ><br>
+            <input type="submit" value="Agregar coneccion"><br>
+        </form>
+    </div>
+    <div>
+        <table>
+            <th>Tag</th>
+            <th>Url</th>
+            <th>Token</th>
+            <th>Action</th>
+
+            <% for(var i=0; i<conections.length; i++){ %>
+                <tr>
+                    <td><%=conections[i].tag  %> </td>
+                    <td><%=conections[i].url %> </td>
+                    <td> <%=conections[i].token %> </td>
+                    <td> 
+                        <!-- <a class='editButton' href="/conections/edit/<%=i %>"  >Editar</a>  -->
+                        <a class="deleteButton" href="/conections/delete/<%=conections[i].tag %>"  >Quitar</a>
+                    </td>
+                    
+                </tr>
+                <% } %>
+         
+            
+        </table>
+
+    </div>
+
+
+
+    
+</body>
+</html>
