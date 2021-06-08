@@ -12,7 +12,8 @@
     <div id='title'>
         <h1> Datos de usuarios</h1>
     </div>
- 
+    <a class="deleteButton" href="/customers">Buscar nuevos usuarios</a>
+    <a class="editButton" href="/export">Exportar a excel</a>
    
     <div>
         <table>
@@ -28,6 +29,7 @@
             <th>CP</th>
             <th>Ciudad</th>
             <th>Productos_comprados</th>
+            <th>Total gastado</th>
             <th>Fecha_agregado</th>
             <th>Fecha_actualizado</th>
 
@@ -45,6 +47,7 @@
                     <td><%= users[i].postCode %> </td>
                     <td> <%= users[i].city %> </td>
                     <td><%= users[i].products %> </td>
+                    <td><%= users[i].total %> </td>
                     <td> <%= users[i].dateAdded %> </td>
                     <td><%= users[i].dateUpdated %> </td>
                   

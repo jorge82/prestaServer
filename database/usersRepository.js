@@ -7,30 +7,38 @@ class UsersRepository{
     }
 
     createTable(){
-        const sql= 'CREATE TABLE IF NOT EXISTS users (tag TEXT, id TEXT, name TEXT, lastName TEXT,email TEXT, phone TEXT,cellPhone TEXT, address TEXT, postCode TEXT, city TEXT, products TEXT, dateAdded TEXT, dateUpdated TEXT, PRIMARY KEY (tag, id) )';
+        //const sql= 'CREATE TABLE IF NOT EXISTS users (tag TEXT, id TEXT, name TEXT, lastName TEXT,email TEXT, phone TEXT,cellPhone TEXT, address TEXT, postCode TEXT, city TEXT, products TEXT, dateAdded TEXT, dateUpdated TEXT, PRIMARY KEY (tag, id) )';
+        const sql= 'CREATE TABLE IF NOT EXISTS users (tag TEXT, id TEXT, name TEXT, lastName TEXT, email TEXT ,dateAdded TEXT, dateUpdated TEXT, PRIMARY KEY (tag, id) )';
         return this.dao.run(sql);
 
     }
 
     insert(user){
-        const {tag , id , name , lastName ,email , phone ,cellPhone , address , postCode, city , products , dateAdded , dateUpdated } = user;
-        return this.dao.run("INSERT INTO users (tag , id , name , lastName ,email , phone ,cellPhone , address , postCode, city , products , dateAdded , dateUpdated ) VALUES (?, ?, ?,?,?,?,?,?,?,?,?,?,?)", [tag , id , name , lastName ,email , phone ,cellPhone , address , postCode, city , products , dateAdded , dateUpdated ])
+        //const {tag , id , name , lastName ,email , phone ,cellPhone , address , postCode, city , products , dateAdded , dateUpdated } = user;
+        const {tag , id , name , lastName ,email , dateAdded , dateUpdated } = user;
+        //return this.dao.run("INSERT INTO users (tag , id , name , lastName ,email , phone ,cellPhone , address , postCode, city , products , dateAdded , dateUpdated ) VALUES (?, ?, ?,?,?,?,?,?,?,?,?,?,?)", [tag , id , name , lastName ,email , phone ,cellPhone , address , postCode, city , products , dateAdded , dateUpdated ])
+        return this.dao.run("INSERT INTO users (tag , id , name , lastName ,email , dateAdded , dateUpdated ) VALUES (?, ?, ?, ?, ?, ?, ?)", [tag , id , name , lastName ,email , dateAdded , dateUpdated ])
 
     }
     update(user) {
-        const {tag , id , name , lastName ,email , phone ,cellPhone , address , postCode, city , products , dateAdded , dateUpdated } = user;
-        return this.dao.run(
-          `UPDATE users  SET name = ? , lastName = ?, email = ?,  phone = ?, cellPhone = ?,  address = ?,  postCode = ?,  city = ?,  products = ?, dateAdded = ?,  dateUpdated = ? WHERE tag = ? and id = ?`,[ name , lastName ,email , phone ,cellPhone , address , postCode, city , products , dateAdded , dateUpdated,tag , id ]
+        //const {tag , id , name , lastName ,email , phone ,cellPhone , address , postCode, city , products , dateAdded , dateUpdated } = user;
+        const {tag , id , name , lastName ,email , dateAdded , dateUpdated } = user;
+        // return this.dao.run(
+        //   `UPDATE users  SET name = ? , lastName = ?, email = ?,  phone = ?, cellPhone = ?,  address = ?,  postCode = ?,  city = ?,  products = ?, dateAdded = ?,  dateUpdated = ? WHERE tag = ? and id = ?`,[ name , lastName ,email , phone ,cellPhone , address , postCode, city , products , dateAdded , dateUpdated,tag , id ]
           
-        )
+        // )
+        return this.dao.run(
+            `UPDATE users  SET name = ? , lastName = ?, email = ?, dateAdded = ?,  dateUpdated = ? WHERE tag = ? and id = ?`,[ name , lastName ,email ,  dateAdded , dateUpdated, tag , id ]
+            
+          )
     }
-    updateProducts(tag, id, products) {
+    // updateProducts(tag, id, products) {
         
-        return this.dao.run(
-          `UPDATE users  SET products = ?  WHERE tag = ? and id = ?`,[products ,tag , id ]
+    //     return this.dao.run(
+    //       `UPDATE users  SET products = ?  WHERE tag = ? and id = ?`,[products ,tag , id ]
           
-        )
-    }
+    //     )
+    // }
     delete(tag, id){
         return this.dao.run('DELETE FROM users WHERE tag=? AND id=?', [tag,id]);
     }

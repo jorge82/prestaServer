@@ -1,7 +1,8 @@
 const express= require('express')
 const { auth, requiresAuth } = require("express-openid-connect");
-const api=require('./Api');
-const Api2=require('./Api3');
+//const api=require('./Api');
+//const Api2=require('./Api3');
+const api=require('./Api4');
 var bodyParser = require('body-parser')
 const ExportExcel=require('./exportExcel');
 
@@ -9,6 +10,8 @@ const Promise = require('bluebird')
 const AppDAO = require('./database/dao')
 const ConectionRepository = require('./database/conectionsRepository')
 const UsersRepository = require('./database/usersRepository');
+const OrdersRepository= require('./database/ordersRepository');
+const AddressRepository= require('./database/addressRepository');
 const exportExcel = require('./exportExcel');
 
 
@@ -22,6 +25,8 @@ const dao = new AppDAO('./database/database.sqlite3')
 
 const conectionRepo = new ConectionRepository(dao)
 const userRepo= new UsersRepository(dao);
+const orderRepo= new OrdersRepository(dao);
+const addressRepo= new AddressRepository(dao);
 
 app.set('view engine' , 'ejs');
 const PORT = process.env.PORT || 3000;
@@ -116,7 +121,9 @@ app.get('/customers', requiresAuth(),async (req,res)=>{
 
     rows.forEach(row=>{
       console.log("conecion;", row)
-      Api2.getData(row.url, row.token, row.tag)
+      api.getAllCustomerAddress(row.url, row.token, row.tag);
+      api.getOrders(row.url, row.token, row.tag);
+      api.getData(row.url, row.token, row.tag)
     })
     //pi2.getData(URL, TOKEN, TAG)
 
@@ -128,13 +135,60 @@ app.get('/customers', requiresAuth(),async (req,res)=>{
 
   //res.send(JSON.stringify(req.oidc.user))
 })
+app.get('/addresses', requiresAuth(),async (req,res)=>{
+ 
 
+ addressRepo.getAll().then((rows)=>{
+
+
+  res.render('addresses', {addresses:rows})
+
+ })
+  .catch(err=>{
+    console.log(err);
+  }
+  )
+
+
+})
+app.get('/orders', requiresAuth(),async (req,res)=>{
+ 
+
+  orderRepo.getAll().then((rows)=>{
+ 
+ 
+   res.render('orders', {orders:rows})
+ 
+  })
+   .catch(err=>{
+     console.log(err);
+   }
+   )
+ 
+ 
+ })
 app.get('/users', requiresAuth(),(req,res)=>{
 
-  userRepo.getAll().then(rows=>{
+  //const sql= 'SELECT * from users u INNER JOIN addresses a on u.id=a.id_customer';
+  const sql= 'SELECT u.tag ,u.id, u.name, u.lastName, u.email, u.dateAdded, u.dateUpdated, a.phone, a.cellPhone, a.address, a.postCode,a.city,  GROUP_CONCAT(DISTINCT o.products) products , sum(o.total_paid) as total from users u INNER JOIN orders o on u.id=o.id_customer and u.tag=o.tag INNER JOIN addresses a on u.id=a.id_customer and u.tag=a.tag GROUP BY u.id,u.tag ORDER BY u.id,u.tag';
 
+  const data=dao.all(sql);
+  // console.log("data", data)
+  data.then(rows=>{
+    //console.log("data", rows)
+    let data= rows.map((el)=>{
+      const arr=el.products.split("\n");
+      //console.log("productos:", [...new Set(arr)])
+      el.products=[...new Set(arr)];
+      return el;
+    
+    })
+    data.sort((a,b)=>{
 
-    res.render('users', {users:rows})
+      return (a.id-b.id)
+    })
+    //console.log("data", data)
+    res.render('users', {users:data})
 
   })
 
@@ -143,13 +197,24 @@ app.get('/users', requiresAuth(),(req,res)=>{
 
 
 app.get('/export', requiresAuth(),(req,res)=>{
+  const sql= 'SELECT u.tag ,u.id, u.name, u.lastName, u.email, u.dateAdded, u.dateUpdated, a.phone, a.cellPhone, a.address, a.postCode,a.city,  GROUP_CONCAT(DISTINCT o.products) products , sum(o.total_paid) as total from users u INNER JOIN orders o on u.id=o.id_customer and u.tag=o.tag INNER JOIN addresses a on u.id=a.id_customer and u.tag=a.tag GROUP BY u.id,u.tag';
 
-  userRepo.getAll().then(rows=>{
+  const data=dao.all(sql);
+
+ data.then(rows=>{
+  let data= rows.map((el)=>{
+    const arr=el.products.split("\n");
+    //console.log("productos:", [...new Set(arr)])
+    el.products=[...new Set(arr)];
+    el.total=el.total.toString()
+    return el;
+  
+  })
 
 
-   console.log("headers:",Object.keys(rows[0]));
+   //console.log("headers:",Object.keys(rows[0]));
    const fileName='users'
-   exportExcel(Object.keys(rows[0]), rows, 'users')
+   exportExcel(Object.keys(data[0]), data, 'users')
    setTimeout(() => {
     const file = __dirname +'/'+fileName+'.xlsx' 
     res.download(file)
