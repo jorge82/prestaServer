@@ -9,10 +9,21 @@
 <body>  
     
  
-    <div id='title'>
-        <h1> Conecciones Webservice Prestashop</h1>
-        <a class="showUsers" href="/users"  >Mostrar Usarios</a>
-    </div>
+    <div  class="topnav">
+    
+        <h3> Connections</h3>
+    
+        <ul id=”button”>
+            <li><a href="/">Home</a></li>
+            <li><a href="/connections">Connections</a></li>
+            <li><a href="/users">Users</a></li>
+            <li><a href="/addresses">Addresses</a></li>
+            <li><a href="/orders">Orders</a></li>
+        
+             
+        </ul>
+        
+  </div>
     <% if ( message ) { %>
         <% if ( message.type == 'error' ) { %>
             <h4 class="error"> <%= message.text %> </h4>
@@ -43,7 +54,7 @@
                     <td> <%=conections[i].token %> </td>
                     <td> 
                         <!-- <a class='editButton' href="/conections/edit/<%=i %>"  >Editar</a>  -->
-                        <a class="deleteButton" href="/conections/delete/<%=conections[i].tag %>"  >Quitar</a>
+                        <a class="deleteButton" href="/connections/delete/<%=conections[i].tag %>"  >Quitar</a>
                     </td>
                     
                 </tr>

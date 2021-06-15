@@ -1,5 +1,5 @@
 body {
-  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background: linear-gradient(-45deg, #110130, #2b025a, #23a6d5, #23d5ab);
   background-size: 400% 400%;
   animation: gradient 15s ease infinite;
   text-align: center;
@@ -69,6 +69,30 @@ table {
   color: white;
   border-radius: 100%;
   text-decoration: none;
+}
+#button {
+  padding: 0;
+}
+.topnav {
+  overflow: hidden;
+  background-color: #2175bc;
+}
+li {
+  display: inline;
+}
+li a {
+  font-family: Arial;
+  font-size: 11px;
+  text-decoration: none;
+  float: left;
+  padding: 10px;
+  background-color: #2175bc;
+  color: #fff;
+}
+li a:hover {
+  background-color: #2586d7;
+  margin-top: -2px;
+  padding-bottom: 12px;
 }
 .showUsers {
   width: 115px;

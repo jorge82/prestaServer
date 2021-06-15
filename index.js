@@ -30,9 +30,30 @@ const addressRepo= new AddressRepository(dao);
 
 app.set('view engine' , 'ejs');
 const PORT = process.env.PORT || 3000;
-
+//INTERVALO DE TIEMPO 1 HORA = 60*60= 3600 SEGUNDOS=3600000 MILISEGUNDOS
+const INTERVALODEACTUALIZACION=3600000;
 require('dotenv').config();
 app.use(express.static(__dirname + '/views'));
+
+
+setInterval(() => {
+  conectionRepo.getAll().then((rows)=>{
+    console.log('Updating data')
+    rows.forEach(row=>{
+      console.log("conecion;", row)
+      api.getAllCustomerAddress(row.url, row.token, row.tag);
+      api.getOrders(row.url, row.token, row.tag);
+      api.getData(row.url, row.token, row.tag)
+    })
+    //pi2.getData(URL, TOKEN, TAG)
+
+  })
+  .catch(err=>{
+    console.log(err);
+  })
+}
+
+  , INTERVALODEACTUALIZACION)
 
 const config = {
   authRequired: false,
@@ -47,16 +68,17 @@ const config = {
 app.use(auth(config));
 
 // req.isAuthenticated is provided from the auth router
-app.get("/", (req, res) => {
+app.get("/", requiresAuth(),(req,res)=>{
 
-  res.send(req.oidc.isAuthenticated() ? "Logged in" : "Logged out");
+  res.render('home')
+  // res.send(req.oidc.isAuthenticated() ? "Logged in" : "Logged out");
 });
 
 app.get('/profile', requiresAuth(),(req,res)=>{
     res.send(JSON.stringify(req.oidc.user))
 })
 
-app.post('/conections', requiresAuth(),(req,res)=>{
+app.post('/connections', requiresAuth(),(req,res)=>{
   console.log("body: ", req.body)
 
 
@@ -93,7 +115,7 @@ app.post('/conections', requiresAuth(),(req,res)=>{
   //res.send(JSON.stringify(req.oidc.user))
 })
 
-app.get('/conections/delete/:id', requiresAuth(),(req,res)=>{
+app.get('/connections/delete/:id', requiresAuth(),(req,res)=>{
   console.log(req.params.id)
   conectionRepo.delete(req.params.id);
  
@@ -102,7 +124,7 @@ app.get('/conections/delete/:id', requiresAuth(),(req,res)=>{
 
 })
 
-app.get('/conections', requiresAuth(),(req,res)=>{
+app.get('/connections', requiresAuth(),(req,res)=>{
   conectionRepo.getAll().then((rows)=>{
     console.log("conections: ", rows);
     res.render('conections', {conections:rows,message:null})
@@ -197,16 +219,16 @@ app.get('/users', requiresAuth(),(req,res)=>{
 
 
 app.get('/export', requiresAuth(),(req,res)=>{
-  const sql= 'SELECT u.tag ,u.id, u.name, u.lastName, u.email, u.dateAdded, u.dateUpdated, a.phone, a.cellPhone, a.address, a.postCode,a.city,  GROUP_CONCAT(DISTINCT o.products) products , sum(o.total_paid) as total from users u INNER JOIN orders o on u.id=o.id_customer and u.tag=o.tag INNER JOIN addresses a on u.id=a.id_customer and u.tag=a.tag GROUP BY u.id,u.tag';
-
+  //const sql= 'SELECT u.tag ,u.id, u.name AS NOMBRE, u.lastName AS APELLIDO, u.email, u.dateAdded, u.dateUpdated, a.phone AS TELÉFONO, a.cellPhone, a.address AS DIRECCIÓN, a.postCode AS COD_POSTAL,a.city AS  CIUDAD ,  GROUP_CONCAT(DISTINCT o.products) products AS PRODUCTOS , sum(o.total_paid) as total from users u INNER JOIN orders o on u.id=o.id_customer and u.tag=o.tag INNER JOIN addresses a on u.id=a.id_customer and u.tag=a.tag GROUP BY u.id,u.tag';
+  const sql= 'SELECT u.tag ,u.id, u.name  NOMBRE, u.lastName  APELLIDO, u.email  CORREO, a.phone  TELEFONO,  a.address  DIRECCION, a.postCode  COD_POSTAL,a.city   CIUDAD ,  GROUP_CONCAT(DISTINCT o.products) PRODUCTOS_COMPRADOS  from users u INNER JOIN orders o on u.id=o.id_customer and u.tag=o.tag INNER JOIN addresses a on u.id=a.id_customer and u.tag=a.tag GROUP BY u.id,u.tag';
   const data=dao.all(sql);
 
  data.then(rows=>{
   let data= rows.map((el)=>{
-    const arr=el.products.split("\n");
+    const arr=el.PRODUCTOS_COMPRADOS .split("\n");
     //console.log("productos:", [...new Set(arr)])
-    el.products=[...new Set(arr)];
-    el.total=el.total.toString()
+    el.PRODUCTOS_COMPRADOS =[...new Set(arr)];
+    // el.total=el.total.toString()
     return el;
   
   })
