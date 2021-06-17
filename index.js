@@ -214,7 +214,34 @@ app.get('/users', requiresAuth(),(req,res)=>{
 
   })
 
-  
+})
+
+
+app.get('/contacts', requiresAuth(),(req,res)=>{
+
+  //const sql= 'SELECT * from users u INNER JOIN addresses a on u.id=a.id_customer';
+  const sql= 'SELECT u.tag ,u.id, u.name, u.lastName, u.email, u.dateAdded, u.dateUpdated, a.phone, a.cellPhone, a.address, a.postCode,a.city,  GROUP_CONCAT(DISTINCT o.products) products , sum(o.total_paid) as total from users u INNER JOIN orders o on u.id=o.id_customer and u.tag=o.tag INNER JOIN addresses a on u.id=a.id_customer and u.tag=a.tag GROUP BY u.id,u.tag ORDER BY u.id,u.tag';
+
+  const data=dao.all(sql);
+  // console.log("data", data)
+  data.then(rows=>{
+    //console.log("data", rows)
+    let data= rows.map((el)=>{
+      const arr=el.products.split("\n");
+      //console.log("productos:", [...new Set(arr)])
+      el.products=[...new Set(arr)];
+      return el;
+    
+    })
+    data.sort((a,b)=>{
+
+      return (a.id-b.id)
+    })
+    //console.log("data", data)
+    res.json({users:data})
+
+  })
+
 })
 
 
