@@ -9,9 +9,12 @@ const ExportExcel=require('./exportExcel');
 const Promise = require('bluebird')
 const AppDAO = require('./database/dao')
 const ConectionRepository = require('./database/conectionsRepository')
+const AmoConectionRepository = require('./database/amoConectionsRepository')
 const UsersRepository = require('./database/usersRepository');
 const OrdersRepository= require('./database/ordersRepository');
 const AddressRepository= require('./database/addressRepository');
+
+const {getContacts,getAccessToken, refreshAccessToken}= require('./ApiAmo');
 const exportExcel = require('./exportExcel');
 
 
@@ -24,6 +27,7 @@ app.use(bodyParser.json());
 const dao = new AppDAO('./database/database.sqlite3')
 
 const conectionRepo = new ConectionRepository(dao)
+const amoconectionRepo = new AmoConectionRepository(dao)
 const userRepo= new UsersRepository(dao);
 const orderRepo= new OrdersRepository(dao);
 const addressRepo= new AddressRepository(dao);
@@ -106,20 +110,112 @@ app.post('/connections', requiresAuth(),(req,res)=>{
       
     .catch(err=>{
       conectionRepo.getAll().then((rows)=>{
-        console.log("conections: ", rows);
+        console.log("coections: ", rows);
         res.render('conections', {conections:rows,  message: {type:'error', text:err}});
       })
     })
     
   }
-  //res.send(JSON.stringify(req.oidc.user))
+
+})
+
+app.get('/refreshamotoken', requiresAuth(),(req,res)=>{
+
+
+  amoconectionRepo.getAll().then((rows)=>{
+    if(rows.length>0){
+      let data=rows[0];
+      console.log("data to refresh", data)
+      refreshAccessToken(data.url,data.clientId, data.clientSecret,data.refreshToken).then(info=>{
+        amoconectionRepo.update(data.url, info.access_token, info.refresh_token)
+      })
+    }
+  })
+  .catch(e=>{
+    console.log("Error: ", e)
+  })
+  })
+    
+  
+
+
+app.post('/amoconnections', requiresAuth(),(req,res)=>{
+  console.log("body: ", req.body)
+
+
+  if((req.body.claveSecreta=="") || (req.body.url=="" )|| (req.body.code=="" )|| (req.body.id=="" )){
+
+    conectionRepo.getAll().then((rows)=>{
+    
+      res.render('amoconections', {conections:rows,  message: {type:'error', text:'Por favor complete todos los campos'}});
+    })
+  
+  }else{
+    console.log(req.body.url)
+    console.log(req.body.id)
+    
+    console.log(req.body.claveSecreta)
+    console.log(req.body.code)
+    
+    
+    getAccessToken(req.body.url,req.body.id,req.body.claveSecreta,req.body.code)
+  .then(data=>{
+    console.log("datos:", data)
+    if(data.access_token){
+      
+
+      var newConection={
+        accessToken: data.access_token,
+        url:req.body.url,
+        clientId:req.body.id,
+        clientSecret:req.body.claveSecreta,
+        refreshToken:data.refresh_token
+      }
+
+      amoconectionRepo.insert(newConection)
+      .then((data)=>{
+        console.log(data)
+        amoconectionRepo.getAll().then((rows)=>{
+        
+          res.render('amoconections', {conections:rows,  message: {type:'success', text:'Coneccion agregada con exito'}});
+        })
+        })
+        
+      .catch(err=>{
+        amoconectionRepo.getAll().then((rows)=>{
+          console.log("conections: ", rows);
+          res.render('amoconections', {conections:rows,  message: {type:'error', text:err}});
+        })
+      })
+
+    }else{
+      amoconectionRepo.getAll().then((rows)=>{
+        console.log("conections: ", rows);
+        res.render('amoconections', {conections:rows,  message: {type:'error', text:"Error al conectarse"}});
+      })
+    }
+    
+  })
+
+    
+    
+  }
+
 })
 
 app.get('/connections/delete/:id', requiresAuth(),(req,res)=>{
   console.log(req.params.id)
   conectionRepo.delete(req.params.id);
  
-  res.redirect('/conections');
+  res.redirect('/connections');
+
+
+})
+app.get('/amoconnections/delete', requiresAuth(),(req,res)=>{
+  console.log(req.query.id)
+  amoconectionRepo.delete(req.query.id);
+ 
+  res.redirect('/amoconnections');
 
 
 })
@@ -129,9 +225,12 @@ app.get('/connections', requiresAuth(),(req,res)=>{
     console.log("conections: ", rows);
     res.render('conections', {conections:rows,message:null})
   })
- 
-
-
+})
+app.get('/amoconnections', requiresAuth(),(req,res)=>{
+  amoconectionRepo.getAll().then((rows)=>{
+    console.log("amoconections: ", rows);
+    res.render('amoconections', {conections:rows,message:null})
+  })
 })
 
 app.get('/customers', requiresAuth(),async (req,res)=>{
@@ -215,6 +314,43 @@ app.get('/users', requiresAuth(),(req,res)=>{
   })
 
 })
+
+
+let amoContactData=[];
+app.get('/getamocontacts', requiresAuth(),(req,res)=>{
+
+  amoconectionRepo.getAll().then(rows=>{
+    console.log("data", rows)
+    if(rows.length>0){
+
+      getContacts(rows[0].url, rows[0].accessToken).then(data=>{
+        console.log("amo contacts are:",data)
+        data.map((contact, index)=>{
+    
+          let contactInfo= {firstName:contact.first_name, lastName:contact.last_name }
+          console.log("custom fields:", contact.custom_fields_values)
+          contact.custom_fields_values.map(custom=>{
+            contactInfo[custom.field_name]=custom.values[0].value;
+          })
+          console.log("pushing:", contactInfo)
+          amoContactData.push(contactInfo)
+        })
+       
+      })
+    }
+  })
+
+
+
+})
+app.get('/amocontacts', requiresAuth(),(req,res)=>{
+
+  // res.json({data:amoContactData})
+  console.log("amodata:", amoContactData)
+  res.render('amoContacts', {users:amoContactData})
+
+})
+
 
 
 app.get('/contacts', requiresAuth(),(req,res)=>{

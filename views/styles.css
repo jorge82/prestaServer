@@ -82,12 +82,16 @@ li {
 }
 li a {
   font-family: Arial;
-  font-size: 11px;
+  font-size: 25px;
   text-decoration: none;
   float: left;
   padding: 10px;
   background-color: #2175bc;
   color: #fff;
+}
+#title {
+  font-size: 40px;
+  color: whitesmoke;
 }
 li a:hover {
   background-color: #2586d7;
@@ -106,8 +110,12 @@ li a:hover {
   line-height: 25px;
   font-size: large;
 }
+table {
+  border: 1px solid black;
+}
 th {
   padding-top: 12px;
+
   padding-bottom: 12px;
   text-align: left;
   background-color: #04aa6d;
@@ -124,4 +132,6 @@ th {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: center;
+  word-wrap: break-word;
+  max-width: 500px;
 }

@@ -11,7 +11,7 @@
  
     <div  class="topnav">
     
-        <h3 id="title"> Connections</h3>
+        <h3 id="title"> AmoCrm Connection</h3>
     
         <ul id=”button”>
             <li><a href="/">Home</a></li>
@@ -35,28 +35,33 @@
         <% } %>
       <% } %>
     <div>
-        <form name="formConection" method='POST' action="/connections">
-            <input type="text" id="tag" name='tag' placeholder="insert tag"><br>
-            <input type="text" id="url" name='url' placeholder="insert url"><br>
-            <input type="text" id="token" name='token' placeholder="insert the token" ><br>
-            <input type="submit" value="Add prestashop connection"><br>
+        <form name="formConection" method='POST' action="/amoconnections">
+            <input type="text" id="url" name='url' placeholder="insertar url"><br>
+            <input type="text" id="claveSecreta" name='claveSecreta' placeholder="insertar clave secreta"><br>
+            <input type="text" id="idIntegracion" name='id' placeholder="insertar id de integración"><br>     
+            <input type="text" id="codAutorizacion" name='code' placeholder="insertar codigo de Autorizacion" ><br>
+            <input type="submit" value="Add AmoCrm connection"><br>
         </form>
     </div>
     <div>
         <table>
-            <th>Tag</th>
             <th>Url</th>
-            <th>Token</th>
+            <th>Secret</th>
+            <th>Client iD</th>
+            <th>Access Token</th>
+            <th>Refresh Token</th>
             <th>Action</th>
 
             <% for(var i=0; i<conections.length; i++){ %>
                 <tr>
-                    <td><%=conections[i].tag  %> </td>
-                    <td><%=conections[i].url %> </td>
-                    <td> <%=conections[i].token %> </td>
+                    <td><%=conections[i].url  %> </td>
+                    <td><%=conections[i].clientSecret  %> </td>
+                    <td><%=conections[i].clientId  %> </td>
+                    <td ><%=conections[i].accessToken %> </td>
+                    <td > <%=conections[i].refreshToken %> </td>
                     <td> 
                         <!-- <a class='editButton' href="/conections/edit/<%=i %>"  >Editar</a>  -->
-                        <a class="deleteButton" href="/connections/delete/<%=conections[i].tag %>"  >Quitar</a>
+                        <a class="deleteButton" href="/amoconnections/delete?id=<%=conections[i].url %>"  >Quitar</a>
                     </td>
                     
                 </tr>
