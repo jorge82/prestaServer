@@ -10,23 +10,49 @@ let REFRESHTOKEN="";
 
 
 
-async function getContacts(url, accessToken){
+async function getContacts(url,accessToken, page){
 
 
-  return axios.get(url+'/api/v4/contacts', {
+  return axios.get(url+'/api/v4/contacts?limit=250&page='+page, {
         headers: {
           'Authorization': `Bearer ${accessToken}`
         }
       })
       .then((res) => {
-        //  console.log("respuesta:", res.data._embedded.contacts)
-        const respuesta=res.data._embedded.contacts;
+          //console.log("respuesta:", res.data._embedded.contacts)
+        const respuesta=res.data;
         return respuesta;
       })
       .catch((error) => {
-        console.error("error:", error)
+        console.error("Error:", error)
         return [];
       })
+
+}
+async function getContacts2(url,accessToken, page){
+try{
+console.log("fetching page:", page)
+  const response=await axios.get(url+'/api/v4/contacts?limit=250&page='+page, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      })
+      let data=[]
+      if(response.data!=""){
+        data= response.data._embedded.contacts
+        console.log("calling")
+      
+          return data.concat( await getContacts2(url,accessToken, page+1));
+        }else{
+
+          console.log("termino")
+          return data;
+         } 
+      
+        }catch(error)  {
+        console.error("Error:", error)
+        return [];
+      }
 
 }
 
@@ -83,6 +109,6 @@ function addContacts(newContacts){
 }
 
 
-module.exports.getContacts=getContacts;
+module.exports.getContacts=getContacts2;
 module.exports.getAccessToken=getAccessToken;
 module.exports.refreshAccessToken=refreshAccessToken;

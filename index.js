@@ -319,30 +319,74 @@ app.get('/users', requiresAuth(),(req,res)=>{
 let amoContactData=[];
 app.get('/getamocontacts', requiresAuth(),(req,res)=>{
 
+  let page=1;
+  let hasNextPage=true;
   amoconectionRepo.getAll().then(rows=>{
     console.log("data", rows)
     if(rows.length>0){
-
-      getContacts(rows[0].url, rows[0].accessToken).then(data=>{
+      // getAmoContacts(rows[0].url, rows[0].accessToken, page)
+    //   while(hasNextPage){
+      getContacts(rows[0].url, rows[0].accessToken, page).then(data=>{
         console.log("amo contacts are:",data)
+        // if(!data._link.next){
+        //   hasNextPage=false;
+        // }else{
+        //   page++;
+        // }
+
         data.map((contact, index)=>{
     
-          let contactInfo= {firstName:contact.first_name, lastName:contact.last_name }
-          console.log("custom fields:", contact.custom_fields_values)
+          let contactInfo= {id:contact.id ,firstName:contact.first_name || contact.name, lastName:contact.last_name }
+          // console.log("custom fields:", contact.custom_fields_values)
+          if(contact.custom_fields_values){
           contact.custom_fields_values.map(custom=>{
             contactInfo[custom.field_name]=custom.values[0].value;
           })
-          console.log("pushing:", contactInfo)
+        }
+          // console.log("pushing:", contactInfo)
           amoContactData.push(contactInfo)
         })
        
       })
+    // }
     }
   })
 
 
 
 })
+
+
+function getAmoContacts(url, access_token, page){
+
+  console.log("searching for contacts page number: ",page)
+  getContacts(url, access_token, page).then(data=>{
+    //console.log("amo contacts are:",data._embedded.contacts)
+    if(data._embedded.contacts){
+   
+
+    data._embedded.contacts.map((contact, index)=>{
+
+      let contactInfo= {firstName:contact.first_name, lastName:contact.last_name }
+      //console.log("custom fields:", contact.custom_fields_values)
+      if(contact.custom_fields_values){
+      contact.custom_fields_values.map(custom=>{
+        contactInfo[custom.field_name]=custom.values[0].value;
+      })
+    }
+      //console.log("pushing:", contactInfo)
+      amoContactData.push(contactInfo)
+
+      
+
+        return  getAmoContacts(url, access_token, page++);
+      
+    })
+  }
+   
+  })
+
+}
 app.get('/amocontacts', requiresAuth(),(req,res)=>{
 
   // res.json({data:amoContactData})
