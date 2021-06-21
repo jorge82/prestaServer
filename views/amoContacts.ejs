@@ -20,6 +20,8 @@
             <li><a href="/addresses">Addresses</a></li>
             <li><a href="/orders">Orders</a></li>
             <li><a href="/amoContacts">amoContacts</a></li>
+            <li><a href="/combined">Combined</a></li>
+        
         
              
         </ul>
@@ -32,10 +34,12 @@
     <div>
         <table>
             <th>#</th>
-            <th>Tag</th>
+    
             <th>id</th>
+            <th>Nombre completo</th>
             <th>Nombre</th>
             <th>Apellido</th>
+
             <th>Email</th>
             <th>Telefono</th>
   
@@ -49,10 +53,10 @@
             <% for(var i=0; i<users.length; i++){ %>
                 <tr>
                     <td><%=i %> </td>
-                    <td><%= users[i].tag %> </td>
-                    <td><%= users[i].id %> </td>
-                    <td><%= users[i].firstName %> </td>
-                    <td> <%= users[i].lastName %> </td>
+                    <td><%= users[i].id %> </td>  
+                    <td><%= users[i].name %> </td>
+                    <td><%= users[i].first_name %> </td>
+                    <td> <%= users[i].last_name %> </td>
                     <td><%= users[i].Email %> </td>
                     <td> <%= users[i].Phone %> </td>
                  

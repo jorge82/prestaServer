@@ -13,6 +13,7 @@ const AmoConectionRepository = require('./database/amoConectionsRepository')
 const UsersRepository = require('./database/usersRepository');
 const OrdersRepository= require('./database/ordersRepository');
 const AddressRepository= require('./database/addressRepository');
+const AmoUsersRepository = require ('./database/amoUsersRepository')
 
 const {getContacts,getAccessToken, refreshAccessToken}= require('./ApiAmo');
 const exportExcel = require('./exportExcel');
@@ -31,6 +32,7 @@ const amoconectionRepo = new AmoConectionRepository(dao)
 const userRepo= new UsersRepository(dao);
 const orderRepo= new OrdersRepository(dao);
 const addressRepo= new AddressRepository(dao);
+const amoRepo= new AmoUsersRepository(dao);
 
 app.set('view engine' , 'ejs');
 const PORT = process.env.PORT || 3000;
@@ -309,6 +311,7 @@ app.get('/users', requiresAuth(),(req,res)=>{
       return (a.id-b.id)
     })
     //console.log("data", data)
+    
     res.render('users', {users:data})
 
   })
@@ -324,27 +327,33 @@ app.get('/getamocontacts', requiresAuth(),(req,res)=>{
   amoconectionRepo.getAll().then(rows=>{
     console.log("data", rows)
     if(rows.length>0){
-      // getAmoContacts(rows[0].url, rows[0].accessToken, page)
-    //   while(hasNextPage){
+    
       getContacts(rows[0].url, rows[0].accessToken, page).then(data=>{
-        console.log("amo contacts are:",data)
-        // if(!data._link.next){
-        //   hasNextPage=false;
-        // }else{
-        //   page++;
-        // }
+        //console.log("amo contacts are:",data)
+      
 
         data.map((contact, index)=>{
     
-          let contactInfo= {id:contact.id ,firstName:contact.first_name || contact.name, lastName:contact.last_name }
+          let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name , last_name:contact.last_name }
           // console.log("custom fields:", contact.custom_fields_values)
           if(contact.custom_fields_values){
           contact.custom_fields_values.map(custom=>{
             contactInfo[custom.field_name]=custom.values[0].value;
           })
         }
-          // console.log("pushing:", contactInfo)
-          amoContactData.push(contactInfo)
+
+          amoRepo.getAll().then(rows=>{
+            datos_actuales=rows;
+            let found= datos_actuales.some(el=> el.id==contactInfo.id)
+            if(!found){
+              console.log("pushing:", contactInfo)
+              // amoContactData.push(contactInfo)
+                amoRepo.insert(contactInfo);
+
+            }
+
+          })
+        
         })
        
       })
@@ -357,45 +366,92 @@ app.get('/getamocontacts', requiresAuth(),(req,res)=>{
 })
 
 
-function getAmoContacts(url, access_token, page){
 
-  console.log("searching for contacts page number: ",page)
-  getContacts(url, access_token, page).then(data=>{
-    //console.log("amo contacts are:",data._embedded.contacts)
-    if(data._embedded.contacts){
-   
-
-    data._embedded.contacts.map((contact, index)=>{
-
-      let contactInfo= {firstName:contact.first_name, lastName:contact.last_name }
-      //console.log("custom fields:", contact.custom_fields_values)
-      if(contact.custom_fields_values){
-      contact.custom_fields_values.map(custom=>{
-        contactInfo[custom.field_name]=custom.values[0].value;
-      })
-    }
-      //console.log("pushing:", contactInfo)
-      amoContactData.push(contactInfo)
-
-      
-
-        return  getAmoContacts(url, access_token, page++);
-      
-    })
-  }
-   
-  })
-
-}
 app.get('/amocontacts', requiresAuth(),(req,res)=>{
 
-  // res.json({data:amoContactData})
-  console.log("amodata:", amoContactData)
-  res.render('amoContacts', {users:amoContactData})
+
+  amoRepo.getAll().then(rows=>{
+    res.render('amoContacts', {users:rows})
+
+  })
 
 })
 
+app.get('/combined', requiresAuth(),(req,res)=>{
 
+  var prestaUsers=[];
+
+  amoRepo.getAll().then(amorows=>{
+      const sql= 'SELECT u.tag ,u.id, u.name, u.lastName, u.email, u.dateAdded, u.dateUpdated, a.phone, a.cellPhone, a.address, a.postCode,a.city,  GROUP_CONCAT(DISTINCT o.products) products , sum(o.total_paid) as total from users u INNER JOIN orders o on u.id=o.id_customer and u.tag=o.tag INNER JOIN addresses a on u.id=a.id_customer and u.tag=a.tag GROUP BY u.id,u.tag ORDER BY u.id,u.tag';
+
+      const data=dao.all(sql);
+      // console.log("data", data)
+      data.then(rows=>{
+        //console.log("data", rows)
+        let data= rows.map((el)=>{
+          const arr=el.products.split("\n");
+          //console.log("productos:", [...new Set(arr)])
+          el.products=[...new Set(arr)];
+          return el;
+        
+        })
+        data.sort((a,b)=>{
+    
+          return (a.id-b.id)
+        })
+        //console.log("data", data)
+        prestaUsers=data;
+
+
+    const filtered=amorows.filter(contact=>contact.Email!=null || contact.Phone!=null)
+    const filtered2=filtered.filter(contact=>{
+
+
+    for(let i=0; i<prestaUsers.length;i++){
+      if(contact.Email){
+        if(contact.Email==prestaUsers[i].email){
+          contact.name=prestaUsers[i].name  +" "+ prestaUsers[i].lastName;
+          contact.first_name=prestaUsers[i].name;
+          contact.last_name=prestaUsers[i].lastName;
+          contact.DIRECCION=prestaUsers[i].address;
+          contact.COD_POSTAL=prestaUsers[i].postCode;
+          contact.CIUDAD=prestaUsers[i].city;
+          contact.PRODUCTOS_COMPRADOS=prestaUsers[i].products;
+          if(!contact.Phone){
+            contact.Phone=prestaUsers[i].phone;
+          }
+          return true;
+        }
+      }else
+        if((contact.Phone)&&(prestaUsers[i].phone)){
+          var phone=prestaUsers[i].phone
+          let re = new RegExp(phone.replace('+',''));
+          //console.log("regular expresion:", re)
+          if(re.test(contact.Phone)){
+            contact.name=prestaUsers[i].name  +" "+ prestaUsers[i].lastName;
+            contact.Email=prestaUsers[i].email;
+            contact.first_name=prestaUsers[i].name;
+            contact.last_name=prestaUsers[i].lastName;
+            contact.DIRECCION=prestaUsers[i].address;
+            contact.COD_POSTAL=prestaUsers[i].postCode;
+            contact.CIUDAD=prestaUsers[i].city;
+            contact.PRODUCTOS_COMPRADOS=prestaUsers[i].products;
+            return true;
+          }
+
+        
+      }
+
+    }
+    return false;
+  })
+
+    res.render('combined', {users:filtered2})
+
+
+  })
+})
+})
 
 app.get('/contacts', requiresAuth(),(req,res)=>{
 
@@ -418,6 +474,7 @@ app.get('/contacts', requiresAuth(),(req,res)=>{
       return (a.id-b.id)
     })
     //console.log("data", data)
+   
     res.json({users:data})
 
   })
@@ -452,6 +509,113 @@ app.get('/export', requiresAuth(),(req,res)=>{
   })
 
   
+})
+
+app.get('/exportamo', requiresAuth(),(req,res)=>{
+
+
+ amoRepo.getAll().then(rows=>{
+
+  const data= rows.map(value=>{
+    value.id=value.id.toString();
+    return value;
+  })
+ 
+   const fileName='AmoUsers'
+   exportExcel(Object.keys(data[0]), data, fileName)
+   setTimeout(() => {
+    const file = __dirname +'/'+fileName+'.xlsx' 
+    res.download(file)
+   }, 2000);
+   
+  })
+
+  
+})
+
+
+app.get('/exportcombined', requiresAuth(),(req,res)=>{
+
+  var prestaUsers=[];
+
+  amoRepo.getAll().then(amorows=>{
+      const sql= 'SELECT u.tag ,u.id, u.name, u.lastName, u.email, u.dateAdded, u.dateUpdated, a.phone, a.cellPhone, a.address, a.postCode,a.city,  GROUP_CONCAT(DISTINCT o.products) products , sum(o.total_paid) as total from users u INNER JOIN orders o on u.id=o.id_customer and u.tag=o.tag INNER JOIN addresses a on u.id=a.id_customer and u.tag=a.tag GROUP BY u.id,u.tag ORDER BY u.id,u.tag';
+
+      const data=dao.all(sql);
+      // console.log("data", data)
+      data.then(rows=>{
+        //console.log("data", rows)
+        let data= rows.map((el)=>{
+          const arr=el.products.split("\n");
+          //console.log("productos:", [...new Set(arr)])
+          el.products=[...new Set(arr)];
+          return el;
+        
+        })
+        data.sort((a,b)=>{
+    
+          return (a.id-b.id)
+        })
+        //console.log("data", data)
+        prestaUsers=data;
+
+
+    const filtered=amorows.filter(contact=>contact.Email!=null || contact.Phone!=null)
+    const filtered2=filtered.filter(contact=>{
+
+
+    for(let i=0; i<prestaUsers.length;i++){
+      if(contact.Email){
+        if(contact.Email==prestaUsers[i].email){
+          contact.name=prestaUsers[i].name  +" "+ prestaUsers[i].lastName;
+          contact.first_name=prestaUsers[i].name;
+          contact.last_name=prestaUsers[i].lastName;
+          contact.DIRECCION=prestaUsers[i].address;
+          contact.COD_POSTAL=prestaUsers[i].postCode;
+          contact.CIUDAD=prestaUsers[i].city;
+          contact.PRODUCTOS_COMPRADOS=prestaUsers[i].products;
+          if(!contact.Phone){
+            contact.Phone=prestaUsers[i].phone;
+          }
+          return true;
+        }
+      }else
+        if((contact.Phone)&&(prestaUsers[i].phone)){
+          var phone=prestaUsers[i].phone
+          let re = new RegExp(phone.replace('+',''));
+          //console.log("regular expresion:", re)
+          if(re.test(contact.Phone)){
+            contact.name=prestaUsers[i].name  +" "+ prestaUsers[i].lastName;
+            contact.Email=prestaUsers[i].email;
+            contact.first_name=prestaUsers[i].name;
+            contact.last_name=prestaUsers[i].lastName;
+            contact.DIRECCION=prestaUsers[i].address;
+            contact.COD_POSTAL=prestaUsers[i].postCode;
+            contact.CIUDAD=prestaUsers[i].city;
+            contact.PRODUCTOS_COMPRADOS=prestaUsers[i].products;
+            return true;
+          }
+
+        
+      }
+
+    }
+    return false;
+  })
+  const data2= filtered2.map(value=>{
+    value.id=value.id.toString();
+    return value;
+  })
+  const fileName='CombinedUsers'
+  exportExcel(Object.keys(data2[0]), data2, fileName)
+  setTimeout(() => {
+   const file = __dirname +'/'+fileName+'.xlsx' 
+   res.download(file)
+  }, 2000);
+
+
+  })
+})
 })
 app.listen(PORT, ()=>{
     console.log("Listenign to port", PORT);

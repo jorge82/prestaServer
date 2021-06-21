@@ -1,0 +1,47 @@
+
+class AmoUsersRepository{
+
+    constructor(dao){
+        this.dao=dao;
+        // const sql= 'DROP TABLE IF EXISTS amousers';
+        // return this.dao.run(sql);
+        this.createTable();
+    }
+
+    createTable(){
+       
+        const sql= 'CREATE TABLE IF NOT EXISTS amousers ( id INTEGER PRIMARY KEY, name TEXT, first_name TEXT, last_name TEXT,  Email TEXT ,Phone TEXT)';
+        return this.dao.run(sql);
+
+    }
+
+    insert(user){
+     
+        const  {id , name , first_name , last_name,  Email, Phone  } = user;
+        return this.dao.run("INSERT INTO amousers ( id , name , first_name, last_name ,Email , Phone ) VALUES (?, ?, ?, ?, ?, ?)", [id , name , first_name , last_name,  Email, Phone  ])
+
+    }
+    update(user) {
+     
+        const {id , name , first_name , last_name,  Email, Phone  } = user;
+      
+        return this.dao.run(
+            `UPDATE amousers  SET name = ? , first_name = ?, last_name = ?,  Email = ?, Phone= ? WHERE  id = ?`,[name , first_name , last_name,  Email, Phone , id ]
+            
+          )
+    }
+ 
+    delete(tag, id){
+        return this.dao.run('DELETE FROM amousers WHERE id=?', [id]);
+    }
+    getByID(id){
+        return this.dao.get('SELECT * FROM amousers WHERE id=?', [id]);
+    }
+    getAll() {
+        return this.dao.all(`SELECT * FROM amousers`)
+      }
+
+
+}
+
+module.exports =  AmoUsersRepository;
