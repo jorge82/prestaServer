@@ -13,6 +13,8 @@ const {getContacts,getAccessToken, refreshAccessToken}= require('../Api/ApiAmo')
 const {getContactsFromDoli,addContatToDoli}= require('../Api/ApiDoli')
 
 
+const {exportExcel, filterContactData} = require('../utils/utils');
+
 const dao = new AppDAO('./database/database.sqlite3')
 
 const conectionRepo = new ConectionRepository(dao)
@@ -215,9 +217,119 @@ function updateAmoContacts(){
     })
 }
 
+
+async function getNewUsers(callBack){
+
+  amoRepo.getAll().then(amoData=>{
+    const filteredAmoData=amoData.filter(contact=>contact.Email!=null || contact.Phone!=null);
+    const filteredAmoData2 = filteredAmoData.reduce((acc, current) => {
+      const x = acc.find(item => item.Email === current.Email);
+      if (!x) {
+        return acc.concat([current]);
+      } else {
+        return acc;
+      }
+    }, []);  
+    
+    let newUsers=[];
+        doliRepo.getAll().then(doliData=>{
+          for( let contact of filteredAmoData){
+              //console.log("user:", user)
+              const foundContact=doliData.find(doliUSer=> { 
+                if(contact.email){
+                  if( contact.Email==doliUSer.email){
+                      return true;
+                  }
+                }
+                 if((contact.Phone)&&(doliUSer.phone)){
+
+                          var phone=contact.Phone.replace(/[- +]/g,'')
+                          var phone2=doliUSer.phone.replace(/[- +]/g,'')
+
+                          var lastSixAmo = phone.substr(phone.length - 6); 
+                          var lastSixDoli = phone2.substr(phone2.length - 6); 
+                   
+                          if(lastSixAmo==lastSixDoli){    
+
+                              console.log("Encontrado!!!:", contact, doliUSer);
+                              return true;
+                          }else{
+                              return false;
+                          }
+                  }else{
+                      return false;
+                  }
+              })
+               //console.log("contact found", foundContact , "amo", contact)
+              if(!foundContact){
+                if(filterContactData(contact)){
+                  newUsers.push(contact)
+                }
+              }
+          }
+          callBack(newUsers);
+        })
+  })
+}
+
+async function getCommonDoliUsers(callBack){
+
+  amoRepo.getAll().then(amoData=>{
+    const filteredAmoData=amoData.filter(contact=>contact.Email!=null || contact.Phone!=null);
+    const filteredAmoData2 = filteredAmoData.reduce((acc, current) => {
+      const x = acc.find(item => item.Email === current.Email);
+      if (!x) {
+        return acc.concat([current]);
+      } else {
+        return acc;
+      }
+    }, []);  
+    
+    let newUsers=[];
+        doliRepo.getAll().then(doliData=>{
+          for( let contact of doliData){
+              //console.log("user:", user)
+              const foundContact=filteredAmoData.find(amoUser=> { 
+                if(contact.email){
+                  if( contact.email==amoUser.Email){
+                      return true;
+                  }
+                }
+                 if((contact.phone)&&(amoUser.Phone)){
+
+                          var phone=contact.phone.replace(/[- +]/g,'')
+                          var phone2=amoUser.Phone.replace(/[- +]/g,'')
+
+                          var lastSixAmo = phone.substr(phone.length - 6); 
+                          var lastSixDoli = phone2.substr(phone2.length - 6); 
+                   
+                          if(lastSixAmo==lastSixDoli){    
+
+                              console.log("Encontrado!!!:", contact, amoUser);
+                              return true;
+                          }else{
+                              return false;
+                          }
+                  }else{
+                      return false;
+                  }
+              })
+               //console.log("contact found", foundContact , "amo", contact)
+              if(foundContact){
+                console.log("contact found", foundContact , "doli", contact)
+                  newUsers.push(contact)
+              }
+          }
+          callBack(newUsers);
+        })
+  })
+}
+
 module.exports.updateAmoToken=updateAmoToken;
 module.exports.updatePrestaData=updatePrestaData;
 module.exports.updateDoliContacts=updateDoliContacts;
 module.exports.updateAmoContacts=updateAmoContacts;
 module.exports.updateDoliUsersInRedis=updateDoliUsersInRedis;
 module.exports.addNewContactsToDoli=addNewContactsToDoli;
+module.exports.getNewUsers=getNewUsers;
+module.exports.getCommonDoliUsers=getCommonDoliUsers;

@@ -22,9 +22,9 @@ const {getContacts,getAccessToken, refreshAccessToken}= require('../Api/ApiAmo')
 
 
 
-const exportExcel = require('../utils/exportExcel');
+const {exportExcel, filterContactData} = require('../utils/utils');
 
-const {updateAmoToken, updatePrestaData, updateDoliContacts, updateAmoContacts, addNewContactsToDoli}=require('../model/DBupdater')
+const {updateAmoToken, updatePrestaData, updateDoliContacts, updateAmoContacts, addNewContactsToDoli , getNewUsers,getCommonDoliUsers}=require('../model/DBupdater')
 
 const redis = require("redis");
 const client = redis.createClient();
@@ -482,198 +482,26 @@ routes.get("/", requiresAuth(),(req,res)=>{
   })
   
   routes.get('/combinedDoli', requiresAuth(),(req,res)=>{
+
+    getCommonDoliUsers((common)=>{
+      //console.log("new users ",common)
+      res.render('combinedDoli', {users:common})
+
+    })
+
   
-    const TYPE='combinedDoli'
-      return client.get(TYPE,(err, combinedusers)=>{
-      
-        /* Primero busco los datos de la chache redis*/ 
-          if (combinedusers) {
-            console.log('fetching data from cache-----');
-            return res.render('combinedDoli', {users:JSON.parse(combinedusers)})
-             /*si no se encuentran los busco en las bases de datos*/
-          }else{
-            
-            amoRepo.getAll().then(amoData=>{
-  
-              const filteredAmoData=amoData.filter(contact=>contact.Email!=null || contact.Phone!=null);
-  
-                  doliRepo.getAll().then(doliData=>{
-                    
-                    // console.log("doli data:", doliData)
-                    const filteredDoliData=doliData.filter(contact=>{
-  
-  
-                      for(let user of filteredAmoData){
-                        //console.log("amo data:", user)
-                        if(user.Email){
-                          if(contact.email==user.Email){
-                    
-                            if(!contact.phone){
-                              contact.phone=user.Phone;
-                            }
-                            if(!contact.name){
-                              contact.name=user.name;
-                            }
-                            if(!contact.firstName){
-                              contact.firstName=user.first_name;
-                            }
-                            if(!contact.lastName){
-                              contact.lastName=user.last_name;
-                            }
-                            return true;
-                          }
-                        }
-                          if((user.Phone)&&(contact.phone)){
-                            var phone=user.Phone
-                            let re = new RegExp(phone.replace('+',''));
-                            //console.log("regular expresion:", re)
-                            if(re.test(contact.phone)){
-                              if(!contact.name){
-                                contact.name=user.name;
-                              }
-                              if(!contact.firstName){
-                                contact.firstName=user.first_name;
-                              }
-                              if(!contact.lastName){
-                                contact.lastName=user.last_name;
-                              }
-                              return true;
-                            }
-                  
-                          
-                        }
-                  
-                      }
-                      return false;
-                    })
-                    //console.log("user in both systems, :", filteredDoliData)
-                    client.setex(TYPE, 3600, JSON.stringify(filteredDoliData))
-                     res.render('combinedDoli', {users:filteredDoliData})
-        
-                    
-  
-                  })
-  
-            })
-      
-        
-          }
-        })
       }
   )
   
   routes.get('/newUsers', requiresAuth(),(req,res)=>{
-  
-    const TYPE='newusers'
-      return client.get(TYPE,(err, users)=>{
-      
-        /* Primero busco los datos de la chache redis*/ 
-          if (users) {
-            console.log('fetching data from cache-----');
-            return res.render('newUsers', {users:JSON.parse(users)})
-             /*si no se encuentran los busco en las bases de datos*/
-          }else{
-            
-            amoRepo.getAll().then(amoData=>{
-  
-              const filteredAmoData=amoData.filter(contact=>contact.Email!=null || contact.Phone!=null);
-                let newUsers=[];
-              
-                  doliRepo.getAll().then(doliData=>{
+    /* pasing a callback */
+    getNewUsers((newusers)=>{
+      console.log("new users ",newusers)
+      res.render('newUsers', {users:newusers})
 
-                    for( let contact of filteredAmoData){
-                        //console.log("user:", user)
-                        const filtered=doliData.find(doliUSer=> {
-                            
-                           if( contact.Email==doliUSer.email){
-                               return true;
-                           }
-                           if((contact.Phone)&&(doliUSer.phone)){
-                            //    try{
-                                    var phone=contact.Phone.replace(/[- +]/g,'')
-                                    var phone2=doliUSer.phone.replace(/[- +]/g,'')
+    })
 
-                                    var lastSixAmo = phone.substr(phone.length - 6); 
-                                    var lastSixDoli = phone2.substr(phone2.length - 6); 
-                                    //let re = new RegExp(phone.replace('+',''));
-                                    //console.log("doli phone", phone2)
-                                    // let re2 = new RegExp(phone2.replace(/[- ]/g,''));
-                                    //console.log("regular expresion:", re2)
-                                    // if(re.test(phone2)){
-                                    if(lastSixAmo==lastSixDoli){    
-
-                                        console.log("Encontrado!!!:", contact, doliUSer);
-                                        return true;
-                                    }else{
-                                        return false;
-                                    }
-                                // }catch(e) {
-                                //     console.log("Error", e);
-                                //     return false;
-                                // }  
-                            }else{
-                                return false;
-                            }
-                        
-                        })
-
-                        if(filtered!={}){
-                            //console.log("inserting:",contact )
-                            newUsers.push(contact)
-                        }
-                    }
-
-                      /*
-                    
-                    //console.log("doli data:", doliData)
-                    const newUsers=filteredAmoData.filter(contact=>{
-                      
-  
-                      for(let user of doliData){
-                        // console.log("doli data:", user)
-
-                        if((contact.name=="atencion amo crm") ||(!isNaN(contact.name))){
-                            return false;
-                        }
-  
-                         if(contact.Email){
-                          if(contact.Email==user.email)
-                            console.log("Encontrado!!!:", contact);
-                            return false;
-                         } 
-                        //  console.log("amo user  is", contact);
-                        //  console.log("doli user is", user)
-                         if((contact.Phone)&&(user.phone)){
-                          var phone=contact.Phone
-                          let re = new RegExp(phone.replace('+',''));
-                          console.log("regular expresion:", re)
-                          if(re.test(user.phone)){
-                            console.log("Encontrado!!!:", contact);
-                            return false;
-                          }
-                
-                        
-                      } 
-                      return true;
-                    }
-                  })
-                  
-                    //console.log("user in both systems, :", filteredDoliData)
-                    // client.setex(TYPE, 3600, JSON.stringify(filteredDoliData))
-                     res.render('newUsers', {users:newUsers})
-        
-                    
-                  */
-                     res.render('newUsers', {users:newUsers})
-                  })
-  
-            })
-      
-        
-          }
-        })
-      }
-  )
+  })
 
   routes.get('/addnewUsersToDoli', requiresAuth(),(req,res)=>{
   
@@ -743,7 +571,7 @@ routes.get("/", requiresAuth(),(req,res)=>{
      const fileName='users'
      exportExcel(Object.keys(data[0]), data, 'users')
      setTimeout(() => {
-      const file = __dirname +'/'+fileName+'.xlsx' 
+      const file = __dirname +'/../'+fileName+'.xlsx'
       res.download(file)
      }, 2000);
      
@@ -765,7 +593,7 @@ routes.get("/", requiresAuth(),(req,res)=>{
      const fileName='AmoUsers'
      exportExcel(Object.keys(data[0]), data, fileName)
      setTimeout(() => {
-      const file = __dirname +'/'+fileName+'.xlsx' 
+      const file =__dirname +'/../'+fileName+'.xlsx';
       res.download(file)
      }, 2000);
      
@@ -788,7 +616,7 @@ routes.get("/", requiresAuth(),(req,res)=>{
       const fileName='doliUsers'
       exportExcel(Object.keys(data[0]), data, fileName)
       setTimeout(() => {
-       const file = __dirname +'/'+fileName+'.xlsx' 
+       const file = __dirname +'/../'+fileName+'.xlsx';
        res.download(file)
       }, 2000);
       
@@ -873,7 +701,7 @@ routes.get("/", requiresAuth(),(req,res)=>{
     const fileName='CombinedUsers'
     exportExcel(Object.keys(data2[0]), data2, fileName)
     setTimeout(() => {
-     const file = __dirname +'/'+fileName+'.xlsx' 
+     const file =__dirname +'/../'+fileName+'.xlsx';
      res.download(file)
     }, 2000);
   
@@ -1031,62 +859,21 @@ routes.get("/", requiresAuth(),(req,res)=>{
   
   
   routes.get('/exportnew', requiresAuth(),(req,res)=>{
-  amoRepo.getAll().then(amoData=>{
-  
-    const filteredAmoData=amoData.filter(contact=>contact.Email!=null || contact.Phone!=null);
-  
-        doliRepo.getAll().then(doliData=>{
-          
-          // console.log("doli data:", doliData)
-          const newUsers=filteredAmoData.filter(contact=>{
-            
-  
-            for(let user of doliData){
-              //console.log("doli data:", user)
-  
-               if(contact.Email){
-                if(contact.Email==user.email)
-                console.log("Encontrado!!!:", contact);
-                  return false;
-               } 
-               if((contact.Phone)&&(user.phone)){
-                   
-                var phone=contact.Phone
-                let re = new RegExp(phone.replace('+',''));
-                //console.log("regular expresion:", re)
-                if(re.test(user.phone)){
-                  console.log("Encontrado!!!:", contact);
-                  return false;
-                }
-      
-              
-            } 
-            return true;
-          }
+ 
+        getNewUsers((newUsers)=>{
+          const data2= newUsers.map(value=>{
+            value.id=value.id.toString();
+            return value;
+          })
+          const fileName='newUsers'
+          exportExcel(Object.keys(data2[0]), data2, fileName)
+          setTimeout(() => {
+           const file = __dirname +'/../'+fileName+'.xlsx' 
+           res.download(file)
+          }, 2000);
+
         })
-        const data2= newUsers.map(value=>{
-          value.id=value.id.toString();
-          return value;
-        })
-        const fileName='newUsers'
-        exportExcel(Object.keys(data2[0]), data2, fileName)
-        setTimeout(() => {
-         const file = __dirname +'/'+fileName+'.xlsx' 
-         res.download(file)
-        }, 2000);
-  
-        
-  
-      })
-  
-  
-  
-  
-  })
-  
-  
-  
-  
+ 
   })
 
 
