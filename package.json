@@ -16,12 +16,12 @@
     "ejs": "^3.1.6",
     "excel4node": "^1.7.2",
     "express": "^4.17.1",
-   
     "express-openid-connect": "^2.4.0",
     "express-session": "^1.17.2",
     "json-nested-parser": "^1.0.0",
     "passport": "^0.4.1",
     "passport-auth0": "^1.4.0",
+    "redis": "^3.1.2",
     "sqlite3": "^5.0.2",
     "xml2js": "^0.4.23"
   },

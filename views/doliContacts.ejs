@@ -10,15 +10,15 @@
     
     <div  class="topnav">
         <div class='parent'>
-            <h3 id="title"> users</h3>
+            <h3 id="title"> Dolibarr Contacts</h3>
+    
             <a href="/logout" class="button" style="float: right;">Logout</a></li>
         </div>
-    
-   
-    
+        
         <ul id=”button”>
             <li><a href="/">Home</a></li>
             <li><a href="/connections">Connections</a></li>
+            <li><a href="/amoconnections">AmoCrm connections</a></li>
             <li><a href="/users">Users</a></li>
             <li><a href="/addresses">Addresses</a></li>
             <li><a href="/orders">Orders</a></li>
@@ -33,45 +33,52 @@
         </ul>
         
   </div>
-
-    <a class="button" href="/customers">Buscar nuevos usuarios</a>
-    <a class="button" href="/export">Exportar a excel</a>
+  <a href="/getdolicontacts" class="button">Buscar nuevos usuarios</a>
+  <a href="/exportdoli" class="button">Exportar a excel</a>
+  
    
     <div>
         <table>
             <th>#</th>
-            <th>Tag</th>
+    
             <th>id</th>
+            <th>Nombre completo</th>
             <th>Nombre</th>
             <th>Apellido</th>
+
             <th>Email</th>
             <th>Telefono</th>
-            <th>Celular</th>
+  
             <th>Dirección</th>
             <th>CP</th>
             <th>Ciudad</th>
-            <th>Productos_comprados</th>
-            <th>Total gastado</th>
-            <th>Fecha_agregado</th>
-            <th>Fecha_actualizado</th>
+            <th>Pais</th>
+            <!-- <th>twitter</th>
+            <th>facebook</th>
+            <th>linkedin</th> -->
+  
+      
 
             <% for(var i=0; i<users.length; i++){ %>
                 <tr>
                     <td><%=i %> </td>
-                    <td><%= users[i].tag %> </td>
-                    <td><%= users[i].id %> </td>
+                    <td><%= users[i].id %> </td>  
                     <td><%= users[i].name %> </td>
+                    <td><%= users[i].firstName %> </td>
                     <td> <%= users[i].lastName %> </td>
                     <td><%= users[i].email %> </td>
-                    <td> <%= users[i].phone %> </td>
-                    <td><%= users[i].cellPhone %> </td>
+                    <td> <%= users[i]. phone%> </td>
+                 
                     <td> <%= users[i].address %> </td>
-                    <td><%= users[i].postCode %> </td>
+                    <td><%= users[i].zip %> </td>
                     <td> <%= users[i].city %> </td>
-                    <td><%= users[i].products %> </td>
-                    <td><%= users[i].total %> </td>
-                    <td> <%= users[i].dateAdded %> </td>
-                    <td><%= users[i].dateUpdated %> </td>
+                    <td> <%= users[i].country %> </td>
+                    <!-- <td> <%= users[i].twitter %> </td>
+                    <td> <%= users[i].facebook %> </td>
+                    <td> <%= users[i].linkedin %> </td> -->
+               
+              
+                 
                   
                     
                     

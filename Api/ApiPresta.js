@@ -1,9 +1,9 @@
 const axios = require('axios');
 var parseString = require('xml2js').parseString;
-const AppDAO = require('./database/dao');
-const UsersRepository = require('./database/usersRepository');
-const OrdersRepository= require('./database/ordersRepository');
-const AddressRepository= require('./database/addressRepository');
+const AppDAO = require('../database/dao');
+const UsersRepository = require('../database/usersRepository');
+const OrdersRepository= require('../database/ordersRepository');
+const AddressRepository= require('../database/addressRepository');
 
 
 

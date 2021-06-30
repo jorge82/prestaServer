@@ -4,17 +4,17 @@
     <meta charset='utf-8'>
     <link rel="stylesheet" href="styles.css">
     <title>DBServer</title>
-
   
 </head>
 <body>  
     
- 
     <div  class="topnav">
         <div class='parent'>
-            <h3 id="title"> Presta Addresses</h3>
+            <h3 id="title"> new Users</h3>
+  
             <a href="/logout" class="button" style="float: right;">Logout</a></li>
         </div>
+
     
         <ul id=”button”>
             <li><a href="/">Home</a></li>
@@ -29,36 +29,54 @@
             <li><a href="/combinedDoli">CombinedDoli</a></li>
             <li><a href="/newUsers">newUsers</a></li>
         
+        
              
         </ul>
         
   </div>
- 
+  <a href="/getdolicontacts" class="button">Buscar nuevos usuarios</a>
+  <a href="/exportnew" class="button">Exportar a excel</a>
+  <a href="/addnewUsersToDoli" class="button">Actualizar contactos en DOli</a>
+  
    
     <div>
         <table>
             <th>#</th>
-            <th>Tag</th>
+    
             <th>id</th>
-            <th>user_id</th>
-            <th>telefono</th>
-            <th>celular</th>
-            <th>dirección</th>
+            <th>Nombre completo</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+
+            <th>Email</th>
+            <th>Telefono</th>
+  
+            <th>Dirección</th>
             <th>CP</th>
             <th>Ciudad</th>
+            <th>Productos_comprados</th>
+  
+      
 
-            <% for(var i=0; i<addresses.length; i++){ %>
+            <% for(var i=0; i<users.length; i++){ %>
                 <tr>
                     <td><%=i %> </td>
-                    <td><%= addresses[i].tag %> </td>
-                    <td><%= addresses[i].id %> </td>
-                    <td><%= addresses[i].id_customer %> </td>
-                    <td> <%= addresses[i].phone %> </td>
-                    <td><%= addresses[i].cellPhone %> </td>
-                    <td> <%= addresses[i].address %> </td>
-                    <td><%= addresses[i].postCode %> </td>
-                    <td> <%= addresses[i].city %> </td>
-
+                    <td><%= users[i].id %> </td>  
+                    <td><%= users[i].name %> </td>
+                    <td><%= users[i].first_name %> </td>
+                    <td> <%= users[i].last_name %> </td>
+                    <td><%= users[i].Email %> </td>
+                    <td> <%= users[i].Phone %> </td>
+                 
+                    <td> <%= users[i].DIRECCION %> </td>
+                    <td><%= users[i].COD_POSTAL %> </td>
+                    <td> <%= users[i].CIUDAD %> </td>
+                    <td><%= users[i].PRODUCTOS_COMPRADOS %> </td>
+              
+                 
+                  
+                    
+                    
                 </tr>
                 <% } %>
           
