@@ -20,8 +20,7 @@ class OrdersRepository{
     update(info) {
         const {tag , id, id_customer , products, invoice_date, total_paid } = info;
         return this.dao.run(
-          `UPDATE orders   id_customer=?,  products = ?, invoice_date=?, total_paid  = ? WHERE tag = ? and id = ?`,[ id_customer, products, invoice_date,total_paid, tag, id ]
-          
+          `UPDATE orders   id_customer=?,  products = ?, invoice_date=?, total_paid  = ? WHERE tag = ? and id = ?`,[ id_customer, products, invoice_date,total_paid, tag, id ]  
         )
     }
   

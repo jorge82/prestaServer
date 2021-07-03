@@ -27,17 +27,16 @@ function addContatToDoli(url, token, newUser){
 
     return axios.post(URL,
         {
-    
             "entity": "1",
             "name": newUser.name,
             "lastname": newUser.name,
             "firstname": newUser.first_name,
             "address": newUser.last_name,
-            "client": "2",    //2 signifca prospecto de cliente,
+            "client": "3",    //2 signifca prospecto de cliente,3 propecto y cliente
             "status": "1",    //1  significa cliente
             "phone":  newUser.Phone,
             "email":  newUser.Email,
-            "note_public":"Imported from amo"
+            "note_public":"Imported from amo." + ( newUser.Tags!=""?("Tags: "+ newUser.tags):"")
             
     },{ headers: { 'DOLAPIKEY': token } })
 

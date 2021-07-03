@@ -4,6 +4,19 @@
     <meta charset='utf-8'>
     <link rel="stylesheet" href="styles.css">
     <title>DBServer</title>
+
+    <script> 
+        function clickAndDisable(link) {
+          // disable subsequent clicks
+            
+         
+          link.onclick = function(event) {
+            console.log("id:", link.id)
+             event.preventDefault();
+             document.getElementById(link.id).style.cssText = 'background:#ffffff; color: #000000;';
+          }
+        }   
+     </script>
   
 </head>
 <body>  
@@ -34,9 +47,9 @@
         </ul>
         
   </div>
-  <a href="/getdolicontacts" class="button">Buscar nuevos usuarios</a>
-  <a href="/exportnew" class="button">Exportar a excel</a>
-  <a href="/addnewUsersToDoli" class="button">Actualizar contactos en DOli</a>
+  <a href="/getdolicontacts" class="button" id="update" onclick="clickAndDisable(this);" >Buscar nuevos usuarios</a>
+  <a href="/exportnew" class="button" >Exportar a excel</a>
+  <a href="/addnewUsersToDoli" id="addnew" class="button" onclick="clickAndDisable(this);" >Actualizar contactos en Doli</a>
   
    
     <div>
@@ -47,14 +60,12 @@
             <th>Nombre completo</th>
             <th>Nombre</th>
             <th>Apellido</th>
-
             <th>Email</th>
             <th>Telefono</th>
-  
-            <th>Dirección</th>
-            <th>CP</th>
-            <th>Ciudad</th>
-            <th>Productos_comprados</th>
+            <th>Tags</th>
+            
+            
+            
   
       
 
@@ -67,12 +78,7 @@
                     <td> <%= users[i].last_name %> </td>
                     <td><%= users[i].Email %> </td>
                     <td> <%= users[i].Phone %> </td>
-                 
-                    <td> <%= users[i].DIRECCION %> </td>
-                    <td><%= users[i].COD_POSTAL %> </td>
-                    <td> <%= users[i].CIUDAD %> </td>
-                    <td><%= users[i].PRODUCTOS_COMPRADOS %> </td>
-              
+                    <td> <%= users[i].Tags %> </td>
                  
                   
                     

@@ -300,53 +300,14 @@ routes.get("/", requiresAuth(),(req,res)=>{
   let amoContactData=[];
   routes.get('/getamocontacts', requiresAuth(),(req,res)=>{
 
-        updateAmoContacts();
-  
-    // let page=1;
-    // let hasNextPage=true;
-    // amoconectionRepo.getAll().then(rows=>{
-    //   console.log("data", rows)
-    //   if(rows.length>0){
-      
-    //     getContacts(rows[0].url, rows[0].accessToken, page).then(data=>{
-    //       //console.log("amo contacts are:",data)
-        
-  
-    //       data.map((contact, index)=>{
-      
-    //         let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name , last_name:contact.last_name }
-    //         // console.log("custom fields:", contact.custom_fields_values)
-    //         if(contact.custom_fields_values){
-    //         contact.custom_fields_values.map(custom=>{
-    //           contactInfo[custom.field_name]=custom.values[0].value;
-    //         })
-    //       }
-  
-    //         amoRepo.getAll().then(rows=>{
-    //           datos_actuales=rows;
-    //           let found= datos_actuales.some(el=> el.id==contactInfo.id)
-    //           if(!found){
-    //             console.log("pushing:", contactInfo)
-    //             // amoContactData.push(contactInfo)
-    //               amoRepo.insert(contactInfo);
-  
-    //           }
-  
-    //         })
-          
-    //       })
-         
-    //     })
-    //   // }
-    //   }
-    // })
-  
-  
+        updateAmoContacts();  
   
   })
   
   routes.get('/getdolicontacts', requiresAuth(),(req,res)=>{
-    updateDoliContacts();
+    updateDoliContacts(()=>{
+      console.log("doli users updated");
+    });
   })
   
   
@@ -485,6 +446,7 @@ routes.get("/", requiresAuth(),(req,res)=>{
 
     getCommonDoliUsers((common)=>{
       //console.log("new users ",common)
+      res.status(200);
       res.render('combinedDoli', {users:common})
 
     })
@@ -495,18 +457,35 @@ routes.get("/", requiresAuth(),(req,res)=>{
   
   routes.get('/newUsers', requiresAuth(),(req,res)=>{
     /* pasing a callback */
-    getNewUsers((newusers)=>{
-      console.log("new users ",newusers)
-      res.render('newUsers', {users:newusers})
-
+    updateDoliContacts(()=>{
+        updateAmoContacts(()=>{
+            getNewUsers((newusers)=>{
+              //console.log("new users ",newusers);
+              res.status(200);
+              res.render('newUsers', {users:newusers});
+            })
+        
+        })
     })
-
   })
 
   routes.get('/addnewUsersToDoli', requiresAuth(),(req,res)=>{
   
-    addNewContactsToDoli();
-      }
+    console.log("adding!!!")
+    updateDoliContacts(()=>{
+      addNewContactsToDoli(()=>{
+        console.log("users correctry updated");
+        res.status(200);
+        setTimeout(()=>{
+          res.redirect('/newusers')}
+          , 2000);
+      })
+    
+
+    });
+ 
+  
+    }
   )
   
   
@@ -871,7 +850,7 @@ routes.get("/", requiresAuth(),(req,res)=>{
            const file = __dirname +'/../'+fileName+'.xlsx' 
            res.download(file)
           }, 2000);
-
+          res.status(200);
         })
  
   })
