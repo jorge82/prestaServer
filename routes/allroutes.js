@@ -111,78 +111,7 @@ routes.get("/", requiresAuth(),(req,res)=>{
   
   })
   
-  routes.get('/refreshamotoken', requiresAuth(),(req,res)=>{
-  
-        updateAmoToken();
-    })
-      
-    
-  
-  
-  routes.post('/amoconnections', requiresAuth(),(req,res)=>{
-    console.log("body: ", req.body)
-  
-  
-    if((req.body.claveSecreta=="") || (req.body.url=="" )|| (req.body.code=="" )|| (req.body.id=="" )){
-  
-      conectionRepo.getAll().then((rows)=>{
-      
-        res.render('amoconections', {conections:rows,  message: {type:'error', text:'Por favor complete todos los campos'}});
-      })
-    
-    }else{
-      console.log(req.body.url)
-      console.log(req.body.id)
-      
-      console.log(req.body.claveSecreta)
-      console.log(req.body.code)
-      
-      
-      getAccessToken(req.body.url,req.body.id,req.body.claveSecreta,req.body.code)
-    .then(data=>{
-      console.log("datos:", data)
-      if(data.access_token){
-        
-  
-        var newConection={
-          accessToken: data.access_token,
-          url:req.body.url,
-          clientId:req.body.id,
-          clientSecret:req.body.claveSecreta,
-          refreshToken:data.refresh_token
-        }
-  
-        amoconectionRepo.insert(newConection)
-        .then((data)=>{
-          console.log(data)
-          amoconectionRepo.getAll().then((rows)=>{
-          
-            res.render('amoconections', {conections:rows,  message: {type:'success', text:'Coneccion agregada con exito'}});
-          })
-          })
-          
-        .catch(err=>{
-          amoconectionRepo.getAll().then((rows)=>{
-            console.log("conections: ", rows);
-            res.render('amoconections', {conections:rows,  message: {type:'error', text:err}});
-          })
-        })
-  
-      }else{
-        amoconectionRepo.getAll().then((rows)=>{
-          console.log("conections: ", rows);
-          res.render('amoconections', {conections:rows,  message: {type:'error', text:"Error al conectarse"}});
-        })
-      }
-      
-    })
-  
-      
-      
-    }
-  
-  })
-  
+
   routes.get('/connections/delete/:id', requiresAuth(),(req,res)=>{
     console.log(req.params.id)
     conectionRepo.delete(req.params.id);
@@ -191,14 +120,7 @@ routes.get("/", requiresAuth(),(req,res)=>{
   
   
   })
-  routes.get('/amoconnections/delete', requiresAuth(),(req,res)=>{
-    console.log(req.query.id)
-    amoconectionRepo.delete(req.query.id);
-   
-    res.redirect('/amoconnections');
-  
-  
-  })
+
   
   routes.get('/connections', requiresAuth(),(req,res)=>{
     conectionRepo.getAll().then((rows)=>{
@@ -206,12 +128,7 @@ routes.get("/", requiresAuth(),(req,res)=>{
       res.render('conections', {conections:rows,message:null})
     })
   })
-  routes.get('/amoconnections', requiresAuth(),(req,res)=>{
-    amoconectionRepo.getAll().then((rows)=>{
-      console.log("amoconections: ", rows);
-      res.render('amoconections', {conections:rows,message:null})
-    })
-  })
+
   
   routes.get('/customers', requiresAuth(),async (req,res)=>{
    
@@ -296,62 +213,7 @@ routes.get("/", requiresAuth(),(req,res)=>{
   
   })
   
-  
-  let amoContactData=[];
-  routes.get('/getamocontacts', requiresAuth(),(req,res)=>{
 
-        updateAmoContacts();  
-  
-  })
-  
-  routes.get('/getdolicontacts', requiresAuth(),(req,res)=>{
-    updateDoliContacts(()=>{
-      console.log("doli users updated");
-    });
-  })
-  
-  
-  
-  routes.get('/amocontacts', requiresAuth(),(req,res)=>{
-  
-    const KEY="amousers";
-  
-    return client.get(KEY, (err, data)=>{
-      if(data){
-        console.log('fetching data from cache-----');
-        return  res.render('amoContacts', {users: JSON.parse(data)})
-  
-      }else{
-      amoRepo.getAll().then(rows=>{
-      client.setex(KEY,3600,JSON.stringify(rows))
-      res.render('amoContacts', {users:rows})
-  
-    })
-  
-  }
-  })
-  
-  })
-  
-  
-  routes.get('/dolicontacts', requiresAuth(),(req,res)=>{
-  
-    const KEY="doliusers";
-  
-    return client.get(KEY, (err, data)=>{
-      if(data){
-        console.log('fetching data from cache-----');
-        return  res.render('doliContacts', {users: JSON.parse(data)})
-      }else{
-        doliRepo.getAll().then(rows=>{
-          client.setex(KEY,3600,JSON.stringify(rows))
-          res.render('doliContacts', {users:rows})
-      
-        })
-      }
-    })
-   
-  })
   
   routes.get('/combined', requiresAuth(),(req,res)=>{
   
@@ -457,23 +319,24 @@ routes.get("/", requiresAuth(),(req,res)=>{
   
   routes.get('/newUsers', requiresAuth(),(req,res)=>{
     /* pasing a callback */
-    updateDoliContacts(()=>{
-        updateAmoContacts(()=>{
+    // updateDoliContacts(()=>{
+    //     updateAmoContacts(()=>{
             getNewUsers((newusers)=>{
               //console.log("new users ",newusers);
               res.status(200);
               res.render('newUsers', {users:newusers});
             })
         
-        })
-    })
+    //     })
+    // })
   })
 
   routes.get('/addnewUsersToDoli', requiresAuth(),(req,res)=>{
   
     console.log("adding!!!")
-    updateDoliContacts(()=>{
+    // updateDoliContacts(()=>{
       addNewContactsToDoli(()=>{
+        updateDoliContacts(()=>{
         console.log("users correctry updated");
         res.status(200);
         setTimeout(()=>{
@@ -548,62 +411,21 @@ routes.get("/", requiresAuth(),(req,res)=>{
   
      //console.log("headers:",Object.keys(rows[0]));
      const fileName='users'
-     exportExcel(Object.keys(data[0]), data, 'users')
-     setTimeout(() => {
+     exportExcel(Object.keys(data[0]), data, 'users',()=>{
       const file = __dirname +'/../'+fileName+'.xlsx'
       res.download(file)
-     }, 2000);
-     
-    })
-  
-    
-  })
-  
-  routes.get('/exportamo', requiresAuth(),(req,res)=>{
-  
-  
-   amoRepo.getAll().then(rows=>{
-  
-    const data= rows.map(value=>{
-      value.id=value.id.toString();
-      return value;
-    })
-   
-     const fileName='AmoUsers'
-     exportExcel(Object.keys(data[0]), data, fileName)
-     setTimeout(() => {
-      const file =__dirname +'/../'+fileName+'.xlsx';
-      res.download(file)
-     }, 2000);
-     
-    })
-  
-    
-  })
-  
-  
-  routes.get('/exportdoli', requiresAuth(),(req,res)=>{
-  
-  
-    doliRepo.getAll().then(rows=>{
-   
-     const data= rows.map(value=>{
-       value.id=value.id.toString();
-       return value;
-     })
-    
-      const fileName='doliUsers'
-      exportExcel(Object.keys(data[0]), data, fileName)
-      setTimeout(() => {
-       const file = __dirname +'/../'+fileName+'.xlsx';
-       res.download(file)
-      }, 2000);
+
       
      })
-   
+    
      
-   })
+    })
   
+    
+  })
+  
+
+
   
   routes.get('/exportcombined', requiresAuth(),(req,res)=>{
   
@@ -678,22 +500,19 @@ routes.get("/", requiresAuth(),(req,res)=>{
       return value;
     })
     const fileName='CombinedUsers'
-    exportExcel(Object.keys(data2[0]), data2, fileName)
-    setTimeout(() => {
-     const file =__dirname +'/../'+fileName+'.xlsx';
-     res.download(file)
-    }, 2000);
-  
-  
-    })
+    exportExcel(Object.keys(data2[0]), data2, fileName,
+    ()=>{
+      const file = __dirname +'/../'+fileName+'.xlsx'
+      res.download(file)})
+    
+   })
+   
+
   })
   })
   
   
   routes.get('/exportcombinedDoli', requiresAuth(),(req,res)=>{
-  
-   
-            
             amoRepo.getAll().then(amoData=>{
   
               const filteredAmoData=amoData.filter(contact=>contact.Email!=null || contact.Phone!=null);
@@ -753,12 +572,10 @@ routes.get("/", requiresAuth(),(req,res)=>{
                       return value;
                     })
                     const fileName='CombinedDoliUsers'
-                    exportExcel(Object.keys(data2[0]), data2, fileName)
-                    setTimeout(() => {
-                     const file = __dirname +'/'+fileName+'.xlsx' 
-                     res.download(file)
-                    }, 2000);
-        
+                    exportExcel(Object.keys(data2[0]), data2, fileName,
+                    ()=>{
+                      const file = __dirname +'/../'+fileName+'.xlsx'
+                      res.download(file)})
                     
   
                   })

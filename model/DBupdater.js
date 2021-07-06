@@ -34,6 +34,111 @@ client.on("error", function(error) {
 });
 
 
+async function insertAmoConmnection(newconection, callback){
+
+  //const data= await getAccessToken(url,id,body.claveSecreta,code); 
+
+}
+module.exports.exportAmoUsers= async function exportAmoUsers(callback){
+  try{
+  amoRepo.getAll().then(rows=>{
+    const data= rows.map(value=>{
+      value.id=value.id.toString();
+      return value;
+    })
+     const fileName='AmoUsers';
+     exportExcel(Object.keys(data[0]), data, fileName,
+        ()=>{
+        const file = __dirname +'/../'+fileName+'.xlsx'
+        callback(null,file)})
+        });
+   }catch(error){
+       callback(error);
+   }    
+}
+module.exports.exportDoliUsers= async function exportDoliUsers(callback){
+  try{
+    doliRepo.getAll().then(rows=>{
+      const data= rows.map(value=>{
+        value.id=value.id.toString();
+        return value;
+      })
+      const fileName='doliUsers';
+      exportExcel(Object.keys(data[0]), data, fileName,
+        ()=>{
+        const file = __dirname +'/../'+fileName+'.xlsx'
+        callback(null,file)})
+        });
+   }catch(error){
+       callback(error);
+   }    
+}
+module.exports.getAmoUsers= async function getAmoUsers(callback){
+
+  try{
+      const KEY="amousers";
+      client.get(KEY, (err, data)=>{
+          if(data){
+            callback(null, JSON.parse(data));
+          }else{
+            amoRepo.getAll().then(rows=>{
+              client.setex(KEY,3600,JSON.stringify(rows))
+              callback(null, rows);
+            })
+            .catch((error)=>{
+              callback(error);
+            });
+        }
+      });
+  }catch(error){
+     callback(error);
+  }
+}
+module.exports.getDoliUsers= async function getDoliUsers(callback){
+
+  try{
+    const KEY="doliusers";
+  
+    return client.get(KEY, (err, data)=>{
+      if(data){
+            callback(null, JSON.parse(data));
+          }else{
+            doliRepo.getAll().then(rows=>{
+              client.setex(KEY,3600,JSON.stringify(rows))
+              callback(null, rows);
+            })
+            .catch((error)=>{
+              callback(error);
+            });
+        }
+      });
+  }catch(error){
+     callback(error);
+  }
+}
+
+
+module.exports.deleteAmoConnection= async function deleteAmoConnection(id, callback){
+   try{
+     const response = await amoconectionRepo.delete(id);
+     callback(null);
+   }
+   catch(error){
+    callback(error);
+   }
+}
+
+/* function that get all amo connections
+returns connecions with a callback */
+module.exports.getAllAmoConnections= async function getAllAmoConnections(callback){
+  amoconectionRepo.getAll().then((rows)=>{
+    callback(null, rows);
+  })
+  .catch((error)=>{
+    callback(error);
+  });
+}
+
 function updatePrestaData(){
 
     conectionRepo.getAll().then((rows)=>{
@@ -53,21 +158,25 @@ function updatePrestaData(){
 
 
 }
+//Function that updates amoCrm token
+//if there is an error it propagates with the callback
+async function updateAmoToken(callback){
 
-function updateAmoToken(){
-
-    amoconectionRepo.getAll().then((rows)=>{
-        if(rows.length>0){
-            let data=rows[0];
-            console.log("data to refresh", data)
-            refreshAccessToken(data.url,data.clientId, data.clientSecret,data.refreshToken).then(info=>{
-                    amoconectionRepo.update(data.url, info.access_token, info.refresh_token)
-            })
-        }
-      })
-      .catch(e=>{
-        console.log("Error: ", e)
-      })
+    try{
+      const rows= await amoconectionRepo.getAll();
+      if (rows.length>0){
+          try{
+            data=rows[0];
+            const info= await refreshAccessToken(data.url,data.clientId, data.clientSecret,data.refreshToken);
+            const update= await amoconectionRepo.update(data.url, info.access_token, info.refresh_token);
+          }catch(error){
+            callback(error);
+          }
+      }
+      callback(null);
+    }catch(error){
+      callback(error);
+    }
 }
 
 function updateDoliContacts(callback){
@@ -77,7 +186,7 @@ function updateDoliContacts(callback){
     const TAGDoli="Doli"
 
     console.log("Fetching doli contacts!!")
-  
+  try{
     doliRepo.getAll().then(rows=>{
         datos_actuales=rows;
         
@@ -96,18 +205,16 @@ function updateDoliContacts(callback){
                     }
      
             })
-            //espero 2 segundos , actualizo la cache y ejecuto la callback 
-             const TIME=2000; 
-            setTimeout(()=>{
-              updateDoliUsersInRedis();
-              callback();
-            }
-              , TIME);
-           
+              updateDoliUsersInRedis()
+              callback(null);
             
-         })
+         }).catch((error)=>{
+            callback(error);
+        })
     })
-
+    }catch(error){
+      callback(error);
+    }
 }
 
 function addNewContactsToDoli(callback){
@@ -123,7 +230,7 @@ function addNewContactsToDoli(callback){
       console.log("# of users to add", users.length)
       let promises=[];
       //agrego usuarios;
-      for (let i=0;i<2; i++){
+      for (let i=0;i<10; i++){
 
         promises.push(addContatToDoli(URLDoli, TOKENDoli,users[i]));
       }
@@ -162,6 +269,7 @@ function updateAmoUsersInRedis(){
 
 function updateAmoContacts(callback){
     console.log("Updating amo contacts")
+    try{
     let page=1;
     amoconectionRepo.getAll().then(rows=>{
       if(rows.length>0){
@@ -169,8 +277,6 @@ function updateAmoContacts(callback){
         getContacts(rows[0].url, rows[0].accessToken, page).then(data=>{
           amoRepo.getAll().then(rows=>{
             const datos_actuales=rows; 
-           
-         
             data.map((contact, index)=>{
               //console.log("tags", contact._embedded.tags);
               let allTags=[];
@@ -178,8 +284,6 @@ function updateAmoContacts(callback){
                 for(let tag of contact._embedded.tags){
                   allTags.push(tag.name);
                 }
-              
-
                 let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name , last_name:contact.last_name, Tags:allTags.join()}
                 // console.log("custom fields:", contact.custom_fields_values)
                 if(contact.custom_fields_values){
@@ -187,24 +291,27 @@ function updateAmoContacts(callback){
                          contactInfo[custom.field_name]=custom.values[0].value;
                     })
                 }
-    
                 let found= datos_actuales.some(el=> el.id==contactInfo.id)
                 if(!found){
                     console.log("pushing:", contactInfo)
                     amoRepo.insert(contactInfo);
                 }
-
           })
-           //espero 2 segundos  y actualizo la cache
-           const TIME=2000; 
-           setTimeout(()=>{
              updateAmoUsersInRedis();
-              callback();
-            }, TIME);
+             callback(null);
         })
+        }).catch((error)=>{
+          callback(error);
         })
+      }else{
+        console.log("no contacts!!");
+        updateAmoUsersInRedis();
+        callback(null);
       }
     })
+  }catch(error){
+    callback(error);
+  }
 }
 
 
@@ -267,7 +374,7 @@ function contactIsPresent(target, contact){
 async function getNewUsers(callBack){
 
   amoRepo.getAll().then(amoData=>{
-    const filteredAmoData=amoData.filter(contact=>contact.Email!=null || contact.Phone!=null);
+    const filteredAmoData=amoData.filter(contact=>contact.name.length>4 && (contact.Email!=null || contact.Phone!=null));
     const filteredAmoData2 = filteredAmoData.reduce((acc, current) => {
       //  const x = acc.find(item =>  (item.Email!=null && item.Email === current.Email) || 
       //                              comparePhones(item.Phone,current.Phone));

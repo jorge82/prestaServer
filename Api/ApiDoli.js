@@ -12,7 +12,7 @@ function getContactsFromDoli(url, token){
     })
     .catch(e=>{
         console.log("Error getting contacts from dolibar:", e);
-        return [];
+        throw new Error("Error getting contacts from dolibar");
     });
 
 
@@ -45,7 +45,7 @@ function addContatToDoli(url, token, newUser){
         return response.data;
     })
     .catch(e=>{
-        console.log("Error getting products from dolibar:", e);
+        console.log("Error adding contact",newUser ,"to doli.", e);
         return 0;
     });
 

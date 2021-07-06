@@ -33,7 +33,8 @@ const config = {
 
 
 const routes = require('./routes/allroutes');
-
+const amoroutes= require('./routes/amoRoutes');
+const doliroutes= require('./routes/doliRoutes');
 
 // auth router attaches /login, /logout, and /callback routes to the baseURL
 app.use(auth(config));
@@ -43,8 +44,13 @@ app.use(auth(config));
 
 //  Connect all our routes to our application
 app.use('/', routes);
-
+app.use('/amo', amoroutes);
+app.use('/doli', doliroutes);
+//Error handler
+app.use((error, req, res, next) => {
+  return res.status(500).json({ ServerError: error.toString() });
+});
 
 app.listen(PORT, ()=>{
-    console.log("Listenign to port", PORT);
+    console.log("Listening to port", PORT);
 })

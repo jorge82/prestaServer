@@ -4,7 +4,7 @@ const xl = require('excel4node');
 
 
 
-module.exports.exportExcel=function exportExcel(headers, data, fileName){
+module.exports.exportExcel=function exportExcel(headers, data, fileName,callback){
     try{
     const wb = new xl.Workbook();
     const ws = wb.addWorksheet('users');
@@ -30,6 +30,7 @@ module.exports.exportExcel=function exportExcel(headers, data, fileName){
         rowIndex++;
     }); 
     wb.write(fileName+'.xlsx');
+    callback();
     
 }
 catch(err){

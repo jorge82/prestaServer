@@ -50,10 +50,9 @@ console.log("fetching page:", page)
          } 
       
         }catch(error)  {
-        console.error("Error:", error)
-        return [];
-      }
-
+          console.error("Error:", error)
+          throw new Error("Error getting contacts from AmoCrm");
+        }  
 }
 
 async function getAccessToken(url, id_integracion, clave_secreta, codigo_auto ){
@@ -73,7 +72,8 @@ async function getAccessToken(url, id_integracion, clave_secreta, codigo_auto ){
   })
   .catch((error) => {
     console.error("error:", error)
-    return [];
+    throw new Error("Error geting access token");
+    
   })
 
 }
@@ -89,13 +89,12 @@ async function refreshAccessToken(url, id_integracion, clave_secreta, refreshTok
     
   })
   .then((res) => {
-    //  console.log("respuesta:", res.data._embedded.contacts)
-    const respuesta=res.data;
-    return respuesta;
+      const respuesta=res.data;
+      return respuesta;
   })
   .catch((error) => {
     console.error("error:", error)
-    return [];
+    throw new Error("Error al actualizar el Refresh Token");
   })
 
 }
