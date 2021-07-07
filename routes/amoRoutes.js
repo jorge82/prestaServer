@@ -4,8 +4,6 @@ const routes = express.Router();
 const { auth, requiresAuth } = require("express-openid-connect");
 
 
-
-
 const {getContacts,getAccessToken, refreshAccessToken}= require('../Api/ApiAmo');
 
 const {updateAmoToken,  updateAmoContacts, exportAmoUsers, getAmoUsers , deleteAmoConnections,getAllAmoConnections}=require('../model/DBupdater')

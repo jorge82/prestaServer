@@ -36,7 +36,7 @@ function addContatToDoli(url, token, newUser){
             "status": "1",    //1  significa cliente
             "phone":  newUser.Phone,
             "email":  newUser.Email,
-            "note_public":"Imported from amo." + ( newUser.Tags!=""?("Tags: "+ newUser.tags):"")
+            "note_public":"Imported from amo." + ( newUser.Tags!=""?("Tags: "+ newUser.Tags):"")
             
     },{ headers: { 'DOLAPIKEY': token } })
 
@@ -46,7 +46,7 @@ function addContatToDoli(url, token, newUser){
     })
     .catch(e=>{
         console.log("Error adding contact",newUser ,"to doli.", e);
-        return 0;
+        throw new Error ("Error adding user to doli");
     });
 
 

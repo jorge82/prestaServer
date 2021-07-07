@@ -35,6 +35,7 @@ const config = {
 const routes = require('./routes/allroutes');
 const amoroutes= require('./routes/amoRoutes');
 const doliroutes= require('./routes/doliRoutes');
+const combined= require('./routes/amocombinedRoutes');
 
 // auth router attaches /login, /logout, and /callback routes to the baseURL
 app.use(auth(config));
@@ -46,6 +47,7 @@ app.use(auth(config));
 app.use('/', routes);
 app.use('/amo', amoroutes);
 app.use('/doli', doliroutes);
+app.use('/combined', combined);
 //Error handler
 app.use((error, req, res, next) => {
   return res.status(500).json({ ServerError: error.toString() });

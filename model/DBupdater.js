@@ -56,6 +56,39 @@ module.exports.exportAmoUsers= async function exportAmoUsers(callback){
        callback(error);
    }    
 }
+
+module.exports.exportCommonDoli= async function exportCommonDoli(callback){
+
+  getCommonDoliUsers((rows)=>{
+    const data= rows.map(value=>{
+      value.id=value.id.toString();
+      return value;
+    })
+    const fileName='CombinedDoliUsers';
+     exportExcel(Object.keys(data[0]), data, fileName,
+        ()=>{
+        const file = __dirname +'/../'+fileName+'.xlsx'
+        callback(null,file)})
+  }).catch(error=>{
+        callback(error);
+    })    
+}
+module.exports.exportNew= async function exportNew(callback){
+
+  getNewUsers((rows)=>{
+    const data= rows.map(value=>{
+      value.id=value.id.toString();
+      return value;
+    })
+    const fileName='newUsers';
+     exportExcel(Object.keys(data[0]), data, fileName,
+        ()=>{
+        const file = __dirname +'/../'+fileName+'.xlsx'
+        callback(null,file)})
+  }).catch(error=>{
+        callback(error);
+  })    
+}
 module.exports.exportDoliUsers= async function exportDoliUsers(callback){
   try{
     doliRepo.getAll().then(rows=>{
@@ -217,7 +250,7 @@ function updateDoliContacts(callback){
     }
 }
 
-function addNewContactsToDoli(callback){
+async function addNewContactsToDoli(callback){
 
     const URLDoli='dbarg.doli.ar/htdocs';
     const TOKENDoli="fp8x6y95";
@@ -225,22 +258,34 @@ function addNewContactsToDoli(callback){
 
     console.log("New doli contacts to fetch!!")
 
-    getNewUsers((users)=>{
+    getNewUsers(async (users)=>{
+      const usersToAdd=20;
+      const userBatch=5;
+      console.log("# of users to add", usersToAdd)
+       console.log(" users to add", users)
+      let initialValue=0;
+      let i=0;
+      while (i<usersToAdd) {
+          let promises=[];
+          //agrego usuarios;
+          for ( i=initialValue;i<initialValue+userBatch; i++){
 
-      console.log("# of users to add", users.length)
-      let promises=[];
-      //agrego usuarios;
-      for (let i=0;i<10; i++){
-
-        promises.push(addContatToDoli(URLDoli, TOKENDoli,users[i]));
+            promises.push(addContatToDoli(URLDoli, TOKENDoli,users[i]));
+          }
+    
+          try{
+              await Promise.all(promises);
+                    console.log("Adding users bach", i-userBatch,"-",i-1 );
+                    initialValue=i;
+                    if(i==usersToAdd-1){
+                      console.log("Finished adding users");
+                      callback(null);
+                    }
+            }catch (e) {
+                  callback(error);
+              }
       }
- 
-
-      Promise.all(promises).then(()=>{
-
-        console.log("All updates where complited");
-        callback();
-      })
+     
     })
 }
 
@@ -374,7 +419,7 @@ function contactIsPresent(target, contact){
 async function getNewUsers(callBack){
 
   amoRepo.getAll().then(amoData=>{
-    const filteredAmoData=amoData.filter(contact=>contact.name.length>4 && (contact.Email!=null || contact.Phone!=null));
+    const filteredAmoData=amoData.filter(contact=>contact.name.length>4 && (contact.Email!=null || contact.Phone!=null )&& (!contact.name.includes("Llamada saliente")));
     const filteredAmoData2 = filteredAmoData.reduce((acc, current) => {
       //  const x = acc.find(item =>  (item.Email!=null && item.Email === current.Email) || 
       //                              comparePhones(item.Phone,current.Phone));
@@ -420,7 +465,7 @@ async function getNewUsers(callBack){
 }
 
 async function getCommonDoliUsers(callBack){
-
+  
   amoRepo.getAll().then(amoData=>{
     const filteredAmoData=amoData.filter(contact=>contact.Email!=null || contact.Phone!=null);
     const filteredAmoData2 = filteredAmoData.reduce((acc, current) => {
@@ -432,7 +477,7 @@ async function getCommonDoliUsers(callBack){
       }
     }, []);  
     
-    let newUsers=[];
+    let users=[];
         doliRepo.getAll().then(doliData=>{
           for( let contact of doliData){
               //console.log("user:", user)
@@ -464,10 +509,10 @@ async function getCommonDoliUsers(callBack){
                //console.log("contact found", foundContact , "amo", contact)
               if(foundContact){
                 console.log("contact found", foundContact , "doli", contact)
-                  newUsers.push(contact)
+                  users.push(contact)
               }
           }
-          callBack(newUsers);
+          callBack(users);
         })
   })
 }
