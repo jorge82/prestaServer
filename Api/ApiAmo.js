@@ -98,16 +98,27 @@ async function refreshAccessToken(url, id_integracion, clave_secreta, refreshTok
   })
 
 }
-function addContacts(newContacts){
 
+/* Función que agrega un array de usuarios a Amo */
+async function addContactsToAmo(url, accessToken, users){
+    console.log("Adding users:", users, "to amor");
 
+    axios.post(url+'/api/v4/contacts', users
+       , {headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }})
 
-
-
-
+    .then(response=>{
+       return response.data;
+    })
+    .catch(e=>{
+        console.log("Error adding contact to Amo.", e);
+        throw new Error ("Error adding useres to  Amo");
+    });
 }
 
 
 module.exports.getContacts=getContacts2;
 module.exports.getAccessToken=getAccessToken;
 module.exports.refreshAccessToken=refreshAccessToken;
+module.exports.addContactsToAmo=addContactsToAmo;

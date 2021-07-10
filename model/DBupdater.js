@@ -8,7 +8,7 @@ const AddressRepository= require('../database/addressRepository');
 const AmoUsersRepository = require ('../database/amoUsersRepository')
 const DoliUsersRepository = require ('../database/doliUsersRepository')
 
-const {getContacts,getAccessToken, refreshAccessToken}= require('../Api/ApiAmo');
+const {getContacts,getAccessToken, refreshAccessToken, addContactsToAmo}= require('../Api/ApiAmo');
 
 const {getContactsFromDoli,addContatToDoli}= require('../Api/ApiDoli')
 
@@ -89,6 +89,7 @@ module.exports.exportNew= async function exportNew(callback){
         callback(error);
   })    
 }
+
 module.exports.exportDoliUsers= async function exportDoliUsers(callback){
   try{
     doliRepo.getAll().then(rows=>{
@@ -212,6 +213,28 @@ async function updateAmoToken(callback){
     }
 }
 
+module.exports.addNewContactsToAmo=async function addNewContactsToAmo(users,callback){
+
+    try{
+      const rows= await amoconectionRepo.getAll();
+      if (rows.length>0){
+          try{
+            data=rows[0];
+            const response= await addContactsToAmo(data.url, data.accessToken, users);
+            callback(null);
+            
+           
+          }catch(error){
+            callback(error);
+          }
+      }
+      callback(null);
+    }catch(error){
+      callback(error);
+    }
+}
+
+
 function updateDoliContacts(callback){
 
     const URLDoli='dbarg.doli.ar/htdocs';
@@ -312,7 +335,10 @@ function updateAmoUsersInRedis(){
     })  
 }
 
-function updateAmoContacts(callback){
+
+
+
+function updateAmoContacts(numberRetries, callback){
     console.log("Updating amo contacts")
     try{
     let page=1;
@@ -324,6 +350,7 @@ function updateAmoContacts(callback){
             const datos_actuales=rows; 
             data.map((contact, index)=>{
               //console.log("tags", contact._embedded.tags);
+              //console.log("amo contact", contact);
               let allTags=[];
              
                 for(let tag of contact._embedded.tags){
@@ -346,7 +373,21 @@ function updateAmoContacts(callback){
              callback(null);
         })
         }).catch((error)=>{
-          callback(error);
+            if(numberRetries>0){
+              console.log("Retrying");
+                updateAmoToken((err)=>{
+
+                    if(err){
+                      callback(err);
+                    }else{
+                        updateAmoContacts(numberRetries-1, callback);
+                    }
+                })
+            
+            }else{
+              callback(error);
+            }
+          
         })
       }else{
         console.log("no contacts!!");
@@ -407,7 +448,7 @@ function returnContactWithMoreInfo( currentData, contact){
 
 function contactIsPresent(target, contact){
 
-  if((target.Email!=null && target.Email === contact.Email) || (comparePhones(target.Phone,contact.Phone))){
+  if((target.Email!=null && contact.Email!=null &&  target.Email === contact.Email) || (comparePhones(target.Phone,contact.Phone))){
     return true;
   } else{
     return false;
@@ -430,7 +471,7 @@ async function getNewUsers(callBack){
 
         return acc.concat([current]);
       } else {
-          //  console.log("encontrado", x ,"indece" , index)
+          console.log("encontrado", x.Email)
           //  console.log("current", current )
           //  console.log("contact with more info:",returnContactWithMoreInfo(current,x));
            acc[index]=returnContactWithMoreInfo(current,x);
@@ -517,6 +558,85 @@ async function getCommonDoliUsers(callBack){
   })
 }
 
+
+async function getNewToAmo(callBack){
+  
+  amoRepo.getAll().then(amoData=>{
+    const filteredAmoData=amoData.filter(contact=>contact.Email!=null || contact.Phone!=null);
+    const filteredAmoData2 = filteredAmoData.reduce((acc, current) => {
+      const x = acc.find(item => item.Email!=null && item.Email.length>6 && item.Email === current.Email);
+      if (!x) {
+        return acc.concat([current]);
+      } else {
+        //console.log("founde amo", current.Email)
+        return acc;
+      }
+    }, []);  
+
+    let users=[];
+        doliRepo.getAll().then(doliData=>{
+          const filterDoliData=doliData.filter(contact=>contact.email!=null || contact.phone!=null);
+          const filterDoliData2 = filterDoliData.reduce((acc, current) => {
+                            const x = acc.find(item => item.email!=null && item.email.length>6 && item.email === current.email);
+                            if (!x) {
+                              return acc.concat([current]);
+                            } else {
+                              //console.log("founded", current.email)
+                              return acc;
+                            }
+                          }, []);  
+          for( let contact of filterDoliData2){
+              //console.log("user:", user)
+              const foundContact=filteredAmoData.find(amoUser=> { 
+                if(contact.email){
+                  if( contact.email==amoUser.Email){
+                      return true;
+                  }
+                }
+                 if((contact.phone)&&(amoUser.Phone)){
+
+                          var phone=contact.phone.replace(/[- +]/g,'')
+                          var phone2=amoUser.Phone.replace(/[- +]/g,'')
+
+                          var lastSixAmo = phone.substr(phone.length - 6); 
+                          var lastSixDoli = phone2.substr(phone2.length - 6); 
+                   
+                          if(lastSixAmo==lastSixDoli){    
+
+                              //console.log("Encontrado!!!:", contact, amoUser);
+                              return true;
+                          }else{
+                              return false;
+                          }
+                  }else{
+                      return false;
+                  }
+              })
+               //console.log("contact found", foundContact , "amo", contact)
+              if(!foundContact){
+                  users.push(contact)
+              }
+          }
+          callBack(users);
+        })
+  })
+}
+module.exports.exportNewToAmo= async function exportNewToAmo(callback){
+
+  getNewToAmo((rows)=>{
+    const data= rows.map(value=>{
+      value.id=value.id.toString();
+      return value;
+    })
+    const fileName='newUserstoAmo';
+     exportExcel(Object.keys(data[0]), data, fileName,
+        ()=>{
+        const file = __dirname +'/../'+fileName+'.xlsx'
+        callback(null,file)})
+  }).catch(error=>{
+        callback(error);
+  })    
+}
 module.exports.updateAmoToken=updateAmoToken;
 module.exports.updatePrestaData=updatePrestaData;
 module.exports.updateDoliContacts=updateDoliContacts;
@@ -525,3 +645,4 @@ module.exports.updateDoliUsersInRedis=updateDoliUsersInRedis;
 module.exports.addNewContactsToDoli=addNewContactsToDoli;
 module.exports.getNewUsers=getNewUsers;
 module.exports.getCommonDoliUsers=getCommonDoliUsers;
+module.exports.getNewToAmo=getNewToAmo;

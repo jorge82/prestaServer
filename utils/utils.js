@@ -1,5 +1,5 @@
 const xl = require('excel4node');
-
+var util = require('util');
 
 
 
@@ -56,3 +56,47 @@ module.exports.filterContactData=function filterContactData( contact){
         }
 
 }
+
+module.exports.convertDoliFormatToAmo= function convertDoliFormatToAmo(doliUser){
+
+   const amoUser={
+                
+            "name": doliUser.name || "",
+            "first_name": doliUser.firstName || "",
+            "last_name": doliUser.lastName || "",
+            "responsible_user_id": 6560570,
+            "group_id": 0,
+            "custom_fields_values": [
+                {
+                    "field_id": 243912,
+                    "values": [
+                        {
+                            "value": doliUser.phone || ""
+                        }
+                    ]
+                },
+                {
+                    "field_id":  243914,
+                    "values": [
+                        {
+                            "value": doliUser.email || ""
+                        }
+                    ]
+                }
+            ],
+            "_embedded": {
+                    "tags": [
+                       
+                        {
+                            "name": "Doli"
+                        }
+                    ],
+                    "companies": []
+                }
+        }
+                
+    //console.log(util.inspect(amoUser, false, 7, true))
+    return amoUser;
+   } 
+
+

@@ -4,18 +4,31 @@
     <meta charset='utf-8'>
     <link rel="stylesheet" href="/styles.css">
     <title>DBServer</title>
+
+        <script> 
+        function clickAndDisable(link) {
+          // disable subsequent clicks
+            
+         
+          link.onclick = function(event) {
+            console.log("id:", link.id)
+             event.preventDefault();
+             document.getElementById(link.id).style.cssText = 'background:#ffffff; color: #000000;';
+          }
+        }   
+     </script>
   
 </head>
 <body>  
     
     <div  class="topnav">
-    
+        
         <div class='parent'>
-            <h3 id="title"> AmoCRM Contacts</h3>
+            <h3 id="title"> Contacts new to Amo </h3>
             <a href="/logout" class="button" style="float: right;">Logout</a></li>
         </div>
     
-     
+        
     
         <ul id=”button”>
             <li><a href="/">Home</a></li>
@@ -30,11 +43,13 @@
             <li><a href="/combined/combinedDoli">CombinedDoli</a></li>
             <li><a href="/combined/newUsers">newUsers</a></li>
             <li><a href="/combined/newToAmo">newUsersToAmo</a></li>
+          
           </ul>
         
   </div>
-  <a href="/amo/getcontacts" class="button">Buscar nuevos usuarios</a>
-  <a href="/amo/export" class="button">Exportar a excel</a>
+  <a href="/combined/newToAmo" class="button">Buscar nuevos usuarios</a>
+  <a href="/combined/exportNewToAmo" class="button">Exportar a excel</a>
+  <a href="/combined/addnewUsersToAmo" id="addnew" class="button" onclick="clickAndDisable(this);" >Actualizar contactos en Amo</a>
   
    
     <div>
@@ -45,10 +60,17 @@
             <th>Nombre completo</th>
             <th>Nombre</th>
             <th>Apellido</th>
+
             <th>Email</th>
             <th>Telefono</th>
-            <th>Tags</th>
-            
+  
+            <th>Dirección</th>
+            <th>CP</th>
+            <th>Ciudad</th>
+            <th>Pais</th>
+            <!-- <th>twitter</th>
+            <th>facebook</th>
+            <th>linkedin</th> -->
   
       
 
@@ -57,12 +79,20 @@
                     <td><%=i %> </td>
                     <td><%= users[i].id %> </td>  
                     <td><%= users[i].name %> </td>
-                    <td><%= users[i].first_name %> </td>
-                    <td> <%= users[i].last_name %> </td>
-                    <td><%= users[i].Email %> </td>
-                    <td> <%= users[i].Phone %> </td>
-                    <td> <%= users[i].Tags %> </td>
-                   
+                    <td><%= users[i].firstName %> </td>
+                    <td> <%= users[i].lastName %> </td>
+                    <td><%= users[i].email %> </td>
+                    <td> <%= users[i]. phone%> </td>
+                 
+                    <td> <%= users[i].address %> </td>
+                    <td><%= users[i].zip %> </td>
+                    <td> <%= users[i].city %> </td>
+                    <td> <%= users[i].country %> </td>
+                    <!-- <td> <%= users[i].twitter %> </td>
+                    <td> <%= users[i].facebook %> </td>
+                    <td> <%= users[i].linkedin %> </td> -->
+               
+              
                  
                   
                     
@@ -72,7 +102,6 @@
           
                 
         </table>
-
     </div>
 
 

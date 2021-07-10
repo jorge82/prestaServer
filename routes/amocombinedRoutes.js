@@ -3,8 +3,9 @@ const routes = express.Router();
 
 const { auth, requiresAuth } = require("express-openid-connect");
 
-const {updateAmoToken, updatePrestaData, updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli}=require('../model/DBupdater')
+const {updateAmoToken, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, getNewToAmo,updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli}=require('../model/DBupdater')
 
+const { convertDoliFormatToAmo} = require("../utils/utils")
 
 
   routes.get('/combinedDoli', requiresAuth(),(req,res)=>{
@@ -16,7 +17,56 @@ const {updateAmoToken, updatePrestaData, updateDoliContacts, updateAmoContacts, 
       })  
     }
   )
+   routes.get('/newToAmo', requiresAuth(),(req,res)=>{
+
+      getNewToAmo((newUsers)=>{
+        //console.log("new users ",common)
+        newUsers.map(user=>{
+          
+         convertDoliFormatToAmo(user);
+        })
+        res.status(200);
+        res.render('newToAmo', {users:newUsers});
+      })  
+    }
+  )
+
   
+
+  routes.get('/addNewUsersToAmo', requiresAuth(),  (req,res, next)=>{
+
+     updateAmoContacts(1,(error)=>{
+        if(error){
+                  next(error);
+        }else{
+           getNewToAmo((newUsers)=>{
+                //console.log("new users ",common)
+                const amoUsers= newUsers.map(user=>convertDoliFormatToAmo(user));
+                const amoSlice=amoUsers.slice(0,200)
+
+                addNewContactsToAmo(amoSlice, (error)=>{
+                  if (error){
+                    next(error); 
+                  }else{
+                    res.status(200);
+                  }
+                });  
+            
+        })
+      
+        // res.status(200);
+        // res.send(amoSlice);
+        //res.render('newToAmo', {users:newUsers});
+      }
+     })  
+     
+      console.log("RETURNEDDDDDDDDDDDDDDDDDDDDDDDDD!")
+    })
+
+
+
+
+
   routes.get('/newUsers', requiresAuth(),(req,res)=>{
         getNewUsers((newusers)=>{      
           res.status(200);
@@ -28,7 +78,7 @@ const {updateAmoToken, updatePrestaData, updateDoliContacts, updateAmoContacts, 
           if (error){
               next(error);
           }else{
-              updateAmoContacts((error)=>{
+              updateAmoContacts(1, (error)=>{
                 if (error){
                   next(error);
                 }else{
@@ -87,6 +137,18 @@ const {updateAmoToken, updatePrestaData, updateDoliContacts, updateAmoContacts, 
     })
  
   })
+
+  routes.get('/exportNewToAmo', requiresAuth(),(req,res,next)=>{
+    exportNewToAmo((error, file)=>{
+        if(error){
+            next(error);
+        }else{
+            res.download(file);
+        }
+    })
+ 
+  })
+
 
 
 module.exports = routes;

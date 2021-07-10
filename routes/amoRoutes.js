@@ -15,7 +15,7 @@ const {updateAmoToken,  updateAmoContacts, exportAmoUsers, getAmoUsers , deleteA
             if(error){
                 next(error);// passing the error to the express error handler
             }else{
-                // res.status(200).end();
+                 res.status(200);
             }
 
         });
@@ -104,7 +104,9 @@ const {updateAmoToken,  updateAmoContacts, exportAmoUsers, getAmoUsers , deleteA
   })
   
   routes.get('/getcontacts', requiresAuth(),(req,res, next)=>{
-        updateAmoContacts((error)=>{
+    
+      
+        updateAmoContacts(1,(error)=>{
             if(error){
                 next(error);
             }else{
