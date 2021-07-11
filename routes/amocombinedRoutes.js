@@ -3,7 +3,7 @@ const routes = express.Router();
 
 const { auth, requiresAuth } = require("express-openid-connect");
 
-const {updateAmoToken, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, getNewToAmo,updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli}=require('../model/DBupdater')
+const {updateAmoToken, addNewAmoContact, updateAmoContact, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, getNewToAmo,updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli}=require('../model/DBupdater')
 
 const { convertDoliFormatToAmo} = require("../utils/utils")
 
@@ -11,11 +11,21 @@ const { convertDoliFormatToAmo} = require("../utils/utils")
   let newContacts=[];
   routes.post('/contactsWebHook', (req, res, next)=>{
 
-    console.log("recinbing new contact from amo", req.body);
-    newContacts.push(req.body);
-    res.status(200).end();
-
-  })
+    //console.log("recinbing new contact from amo", req.body);
+    try{
+      newContacts.push(req.body);
+      const data=req.body.contacts;
+      if(data.add){
+        addNewAmoContact(data.add[0]);
+      }
+      if(data.update){
+        updateAmoContact(data.update[0]);
+      }
+      res.status(200).end();
+    }catch(e){
+        next(e);
+    }
+  });
   routes.get('/contactsWebHook', (req, res, next)=>{
 
    

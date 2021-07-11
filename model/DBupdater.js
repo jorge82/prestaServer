@@ -335,6 +335,52 @@ function updateAmoUsersInRedis(){
     })  
 }
 
+module.exports.addNewAmoContact=function addNewAmoContact(contact){
+  let allTags=[];
+  let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join()}
+
+  if(contact.custom_fields){
+      contact.custom_fields.map(custom=>{
+          if (custom.id==243912){//243912 es el id de Phone)
+            contactInfo["Phone"]=custom.values[0].value;
+          }
+          if (custom.id==243914){//243914 es el id de Email)
+            contactInfo["Email"]=custom.values[0].value;
+          }
+            
+      })
+  }
+  amoRepo.insert(contactInfo);
+
+}
+
+module.exports.updateAmoContact=function updateAmoContact(contact){
+
+  let allTags=[];
+  if(contact.tags){
+    for(let tag of contact.tags){
+      allTags.push(tag.name);
+    } 
+  }
+  let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join()}
+
+  if(contact.custom_fields){
+      contact.custom_fields.map(custom=>{
+          if (custom.id==243912){//243912 es el id de Phone)
+            contactInfo["Phone"]=custom.values[0].value;
+          }
+          if (custom.id==243914){//243914 es el id de Email)
+            contactInfo["Email"]=custom.values[0].value;
+          }
+            
+      })
+  }
+  
+  amoRepo.update(contactInfo);
+
+
+}
+
 
 
 
