@@ -8,6 +8,21 @@ const {updateAmoToken, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, ge
 const { convertDoliFormatToAmo} = require("../utils/utils")
 
 
+  let newContacts=[];
+  routes.post('/contactsWebHook', (req, res, next)=>{
+
+    console.log("recinbing new contact from amo", req.body);
+    newContacts.push(req.body);
+    res.status(200).end();
+
+  })
+  routes.get('/contactsWebHook', (req, res, next)=>{
+
+   
+    res.status(200).send(newContacts);
+
+  })
+
   routes.get('/combinedDoli', requiresAuth(),(req,res)=>{
 
       getCommonDoliUsers((common)=>{
