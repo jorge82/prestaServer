@@ -104,8 +104,6 @@ const {updateAmoToken,  updateAmoContacts, exportAmoUsers, getAmoUsers , deleteA
   })
   
   routes.get('/getcontacts', requiresAuth(),(req,res, next)=>{
-    
-      
         updateAmoContacts(1,(error)=>{
             if(error){
                 next(error);
