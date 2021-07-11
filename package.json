@@ -2,9 +2,9 @@
   "name": "authserver",
   "version": "1.0.0",
   "description": "Servidor Auth 0",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js"
   },
   "author": "jorge",
   "license": "ISC",
