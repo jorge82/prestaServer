@@ -34,7 +34,7 @@ const config = {
 
 const routes = require('./routes/allroutes');
 const amoroutes= require('./routes/amoRoutes');
-const doliroutes= require('./routes/doliRoutes');
+const doliroutes= require('./routes/doliroutes');
 const combined= require('./routes/amocombinedRoutes');
 
 // auth router attaches /login, /logout, and /callback routes to the baseURL
