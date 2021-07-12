@@ -353,7 +353,10 @@ module.exports.addNewAmoContact=function addNewAmoContact(contact){
   amoRepo.insert(contactInfo);
 
 }
-
+module.exports.deleteAmoContact=function deleteAmoContact(contact){
+  if(contact.id)
+      amoRepo.delete(contact.id);
+}
 module.exports.updateAmoContact=function updateAmoContact(contact){
 
   let allTags=[];
