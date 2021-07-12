@@ -111,19 +111,19 @@ module.exports.getAmoUsers= async function getAmoUsers(callback){
 
   try{
       const KEY="amousers";
-      client.get(KEY, (err, data)=>{
-          if(data){
-            callback(null, JSON.parse(data));
-          }else{
+      // client.get(KEY, (err, data)=>{
+          // if(data){
+          //   callback(null, JSON.parse(data));
+          // }else{
             amoRepo.getAll().then(rows=>{
-              client.setex(KEY,3600,JSON.stringify(rows))
+              // client.setex(KEY,3600,JSON.stringify(rows))
               callback(null, rows);
             })
             .catch((error)=>{
               callback(error);
             });
-        }
-      });
+        //}
+      // });
   }catch(error){
      callback(error);
   }
@@ -133,19 +133,19 @@ module.exports.getDoliUsers= async function getDoliUsers(callback){
   try{
     const KEY="doliusers";
   
-    return client.get(KEY, (err, data)=>{
-      if(data){
-            callback(null, JSON.parse(data));
-          }else{
+    // return client.get(KEY, (err, data)=>{
+      // if(data){
+      //       callback(null, JSON.parse(data));
+      //     }else{
             doliRepo.getAll().then(rows=>{
-              client.setex(KEY,3600,JSON.stringify(rows))
+              // client.setex(KEY,3600,JSON.stringify(rows))
               callback(null, rows);
             })
             .catch((error)=>{
               callback(error);
             });
-        }
-      });
+        //}
+      // });
   }catch(error){
      callback(error);
   }

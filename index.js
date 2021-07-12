@@ -1,4 +1,9 @@
 const express= require('express')
+var compression = require('compression')
+
+
+
+
 const { auth, requiresAuth } = require("express-openid-connect");
 
 const api=require('./Api/ApiPresta');
@@ -10,7 +15,7 @@ const app=express();
 app.use(bodyParser.urlencoded({extended : true}));
 app.use(bodyParser.json());
 
-
+app.use(compression());
 
 app.set('view engine' , 'ejs');
 const PORT = process.env.PORT || 3000;

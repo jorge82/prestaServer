@@ -32,7 +32,7 @@ const { getDoliUsers,exportDoliUsers, updateDoliContacts, updateAmoContacts, add
         if(error){
             next();
         }else{
-            res.render('doliContacts', {users:data})
+            res.status(200).render('doliContacts', {users:data})
         }
 
     })

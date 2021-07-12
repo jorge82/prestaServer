@@ -125,7 +125,7 @@ const {updateAmoToken,  updateAmoContacts, exportAmoUsers, getAmoUsers , deleteA
         if(error){
             next();
         }else{
-            res.render('amoContacts', {users:data})
+            res.status(200).render('amoContacts', {users:data})
         }
 
     })
