@@ -8,12 +8,12 @@ const {updateAmoToken, addNewAmoContact,deleteAmoContact, updateAmoContact, expo
 const { convertDoliFormatToAmo} = require("../utils/utils")
 
 
-  //let newContacts=[];
+  let newContacts=[];
   routes.post('/contactsWebHook', (req, res, next)=>{
 
     //console.log("recinbing new contact from amo", req.body);
     try{
-      //newContacts.push(req.body);
+      newContacts.push(req.body);
       const data=req.body.contacts;
       console.log("data received:", data)
       if(data.add){
