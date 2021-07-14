@@ -11,23 +11,23 @@ class AmoUsersRepository{
 
     createTable(){
        
-        const sql= 'CREATE TABLE IF NOT EXISTS amousers ( id INTEGER PRIMARY KEY, name TEXT, first_name TEXT, last_name TEXT,  Email TEXT ,Phone TEXT, Tags TEXT)';
+        const sql= 'CREATE TABLE IF NOT EXISTS amousers ( id INTEGER PRIMARY KEY, name TEXT, first_name TEXT, last_name TEXT,  Email TEXT ,Phone TEXT, Tags TEXT, Link TEXT, DoliID INTEGER)';
         return this.dao.run(sql);
 
     }
 
     insert(user){
      
-        const  {id , name , first_name , last_name,  Email, Phone, Tags  } = user;
-        return this.dao.run("INSERT INTO amousers ( id , name , first_name, last_name ,Email , Phone, Tags ) VALUES (?, ?, ?, ?, ?, ?,?)", [id , name , first_name , last_name,  Email, Phone, Tags  ])
+        const  {id , name , first_name , last_name,  Email, Phone, Tags, Link, DoliID } = user;
+        return this.dao.run("INSERT INTO amousers ( id , name , first_name, last_name ,Email , Phone, Tags, Link, DoliID ) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)", [id , name , first_name , last_name,  Email, Phone, Tags, Link, DoliID  ])
 
     }
     update(user) {
      
-        const {id , name , first_name , last_name,  Email, Phone,Tags  } = user;
+        const {id , name , first_name , last_name,  Email, Phone,Tags, Link, DoliID } = user;
       
         return this.dao.run(
-            `UPDATE amousers  SET name = ? , first_name = ?, last_name = ?,  Email = ?, Phone= ? , Tags= ? WHERE  id = ?`,[name , first_name , last_name,  Email, Phone , Tags, id ]
+            `UPDATE amousers  SET name = ? , first_name = ?, last_name = ?,  Email = ?, Phone= ? Link=?, DoliId=? , Tags= ? WHERE  id = ?`,[name , first_name , last_name,  Email, Phone , Tags,Link, DoliID, id ]
             
           )
     }
@@ -41,7 +41,9 @@ class AmoUsersRepository{
     getAll() {
         return this.dao.all(`SELECT * FROM amousers`)
       }
-
+    deleteAll() {
+    return this.dao.run(`DELETE  FROM amousers`)
+    }
 
 }
 

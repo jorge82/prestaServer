@@ -3,23 +3,27 @@ const routes = express.Router();
 
 const { auth, requiresAuth } = require("express-openid-connect");
 
-const {updateAmoToken, addNewAmoContact, updateAmoContact, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, getNewToAmo,updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli}=require('../model/DBupdater')
+const {updateAmoToken, addNewAmoContact,deleteAmoContact, updateAmoContact, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, getNewToAmo,updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli}=require('../model/DBupdater')
 
 const { convertDoliFormatToAmo} = require("../utils/utils")
 
 
-  let newContacts=[];
+  //let newContacts=[];
   routes.post('/contactsWebHook', (req, res, next)=>{
 
     //console.log("recinbing new contact from amo", req.body);
     try{
-      newContacts.push(req.body);
+      //newContacts.push(req.body);
       const data=req.body.contacts;
+      console.log("data received:", data)
       if(data.add){
         addNewAmoContact(data.add[0]);
       }
       if(data.update){
         updateAmoContact(data.update[0]);
+      }
+      if(data.delete){
+        deleteAmoContact(data.delete[0]);
       }
       res.status(200).end();
     }catch(e){
@@ -67,8 +71,10 @@ const { convertDoliFormatToAmo} = require("../utils/utils")
            getNewToAmo((newUsers)=>{
                 //console.log("new users ",common)
                 const amoUsers= newUsers.map(user=>convertDoliFormatToAmo(user));
-                const amoSlice=amoUsers.slice(0,200)
-
+               
+              
+                //const amoSlice=amoUsers.slice(0,500);
+                const amoSlice=amoUsers;
                 addNewContactsToAmo(amoSlice, (error)=>{
                   if (error){
                     next(error); 
@@ -116,7 +122,7 @@ const { convertDoliFormatToAmo} = require("../utils/utils")
   })
 
   routes.get('/addnewUsersToDoli', requiresAuth(),(req,res,next)=>{
-    console.log("adding!!!")
+    //console.log("adding!!!")
     updateDoliContacts((error)=>{
       if (error){
           next(error);
@@ -129,7 +135,7 @@ const { convertDoliFormatToAmo} = require("../utils/utils")
                         if(error){
                           next(error);
                         }else{  
-                          console.log("users correctry updated");
+                          //console.log("users correctry updated");
                           res.status(200);
                           res.redirect('/combined/newusers')}
                         });

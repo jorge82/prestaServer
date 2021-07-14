@@ -2,6 +2,7 @@ const express= require('express')
 var compression = require('compression')
 
 
+const {updateAmoToken, addNewAmoContact,deleteAmoContact, updateAmoContact, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, getNewToAmo,updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli}=require('./model/DBupdater')
 
 
 const { auth, requiresAuth } = require("express-openid-connect");
@@ -47,6 +48,48 @@ app.use(auth(config));
 
 
 
+
+/* Intervalo de actualizacion cada una hora */
+const INTERVALODEACTUALIZACION=3600000;
+//setInterval(updatePrestaData, INTERVALODEACTUALIZACION);
+//Actualizo los los contactos de amo
+setInterval(()=>{updateAmoContacts(1,(error)=>{
+        if(error){
+                  console.log(error);
+        }else{
+               getNewToAmo((newUsers)=>{
+                //console.log("new users ",common)
+                const amoUsers= newUsers.map(user=>convertDoliFormatToAmo(user));
+              
+                //const amoSlice=amoUsers.slice(0,500);
+               
+                addNewContactsToAmo(amoUsers, (error)=>{
+                  if (error){
+                    console.log(error);
+                  }
+                });   
+        });
+      }
+ }) } , INTERVALODEACTUALIZACION);
+//a los 10 minutos actualizo los contactos de amo
+setInterval( ()=>{
+  updateDoliContacts((error)=>{
+      if (error){
+          console.log(error);
+      }else{
+            addNewContactsToDoli((error)=>{
+                if (error){
+                  console.log(error);
+                }
+            });
+      }  
+    })
+  }, INTERVALODEACTUALIZACION + 60000);
+
+
+/* Intervalo de actualiacion del token cada 8 horas y media */
+const INTERVALODEACTUALIZACIONTOKEN=30600000;
+setInterval(updateAmoToken, INTERVALODEACTUALIZACIONTOKEN);
 
 
 

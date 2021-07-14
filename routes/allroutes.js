@@ -47,17 +47,6 @@ const addressRepo= new AddressRepository(dao);
 const amoRepo= new AmoUsersRepository(dao);
 const doliRepo= new DoliUsersRepository(dao);
 
-/* Intervalo de actualizacion cada una hora */
-const INTERVALODEACTUALIZACION=3600000;
-setInterval(updatePrestaData, INTERVALODEACTUALIZACION);
-
-setInterval(updateDoliContacts, INTERVALODEACTUALIZACION + 30000);
-setInterval(updateAmoContacts, INTERVALODEACTUALIZACION + 60000);
-
-
-/* Intervalo de actualiacion del token cada 8 horas y media */
-const INTERVALODEACTUALIZACIONTOKEN=30600000;
-setInterval(updateAmoToken, INTERVALODEACTUALIZACIONTOKEN);
 
 
 

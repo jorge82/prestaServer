@@ -29,6 +29,7 @@ function addContatToDoli(url, token, newUser){
         {
             "entity": "1",
             "name": newUser.name,
+            "name_alias": "<a href="+ newUser.Link + " target=blank> AmoCrmId:"+ newUser.id +"</a>",
             "lastname": newUser.name,
             "firstname": newUser.first_name,
             "address": newUser.last_name,
@@ -36,9 +37,8 @@ function addContatToDoli(url, token, newUser){
             "status": "1",    //1  significa cliente
             "phone":  newUser.Phone,
             "email":  newUser.Email,
-            "note_public":"Imported from amo." + ( newUser.Tags!=""?("Tags: "+ newUser.Tags):"")
-            
-    },{ headers: { 'DOLAPIKEY': token } })
+            "note_public":"Imported from amo." + ( newUser.Tags!=""? ("Tags: "+ newUser.Tags):"")            
+    }, {headers: {'DOLAPIKEY': token }})
 
     .then(response=>{
         console.log("user with id ", response.data," addded");

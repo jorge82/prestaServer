@@ -220,9 +220,18 @@ module.exports.addNewContactsToAmo=async function addNewContactsToAmo(users,call
       if (rows.length>0){
           try{
             data=rows[0];
-            const response= await addContactsToAmo(data.url, data.accessToken, users);
-            callback(null);
-            
+            if(users.length<=250){
+              console.log("Addinng last elemenets to amo");
+              const response= await addContactsToAmo(data.url, data.accessToken, users);
+              callback(null);
+            }else{
+              console.log("Addinng 250 elemenets to amo");
+              const userSlice= users.slice(0,250);
+              const response= await addContactsToAmo(data.url, data.accessToken, userSlice);
+              users.splice(0, 250)
+              addNewContactsToAmo(users,callback);
+            }
+
            
           }catch(error){
             callback(error);
@@ -282,8 +291,8 @@ async function addNewContactsToDoli(callback){
     console.log("New doli contacts to fetch!!")
 
     getNewUsers(async (users)=>{
-      const usersToAdd=20;
-      const userBatch=5;
+      const usersToAdd=users.length;
+      const userBatch=10;
       console.log("# of users to add", usersToAdd)
        console.log(" users to add", users)
       let initialValue=0;
@@ -291,16 +300,19 @@ async function addNewContactsToDoli(callback){
       while (i<usersToAdd) {
           let promises=[];
           //agrego usuarios;
-          for ( i=initialValue;i<initialValue+userBatch; i++){
-
-            promises.push(addContatToDoli(URLDoli, TOKENDoli,users[i]));
+          let max=initialValue+userBatch;
+          
+          for ( i=initialValue;i<max; i++){
+            if(i<usersToAdd){
+                promises.push(addContatToDoli(URLDoli, TOKENDoli,users[i]));
+            }    
           }
     
           try{
               await Promise.all(promises);
                     console.log("Adding users bach", i-userBatch,"-",i-1 );
                     initialValue=i;
-                    if(i==usersToAdd-1){
+                    if(i>=usersToAdd-1){
                       console.log("Finished adding users");
                       callback(null);
                     }
@@ -337,7 +349,8 @@ function updateAmoUsersInRedis(){
 
 module.exports.addNewAmoContact=function addNewAmoContact(contact){
   let allTags=[];
-  let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join()}
+  const amoLink="https://jmbere.amocrm.com/contacts/detail/"+contact.id;
+  let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join(), Link:amoLink, DoliId:0}
 
   if(contact.custom_fields){
       contact.custom_fields.map(custom=>{
@@ -354,6 +367,7 @@ module.exports.addNewAmoContact=function addNewAmoContact(contact){
 
 }
 module.exports.deleteAmoContact=function deleteAmoContact(contact){
+  console.log("trying to delete amo user id", contact.id)
   if(contact.id)
       amoRepo.delete(contact.id);
 }
@@ -395,28 +409,29 @@ function updateAmoContacts(numberRetries, callback){
       if(rows.length>0){
       
         getContacts(rows[0].url, rows[0].accessToken, page).then(data=>{
-          amoRepo.getAll().then(rows=>{
-            const datos_actuales=rows; 
+          //amoRepo.getAll().then(rows=>{
+          amoRepo.deleteAll().then(()=>{  
+            //const datos_actuales=rows; 
             data.map((contact, index)=>{
               //console.log("tags", contact._embedded.tags);
               //console.log("amo contact", contact);
               let allTags=[];
-             
+              const amoLink="https://jmbere.amocrm.com/contacts/detail/"+contact.id;
                 for(let tag of contact._embedded.tags){
                   allTags.push(tag.name);
                 }
-                let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name , last_name:contact.last_name, Tags:allTags.join()}
+                let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name , last_name:contact.last_name, Tags:allTags.join(),  Link:amoLink, DoliId:0}
                 // console.log("custom fields:", contact.custom_fields_values)
                 if(contact.custom_fields_values){
                     contact.custom_fields_values.map(custom=>{
                          contactInfo[custom.field_name]=custom.values[0].value;
                     })
                 }
-                let found= datos_actuales.some(el=> el.id==contactInfo.id)
-                if(!found){
-                    console.log("pushing:", contactInfo)
+                // let found= datos_actuales.some(el=> el.id==contactInfo.id)
+                // if(!found){
+                //     console.log("pushing:", contactInfo)
                     amoRepo.insert(contactInfo);
-                }
+                // }
           })
              updateAmoUsersInRedis();
              callback(null);
@@ -509,7 +524,7 @@ function contactIsPresent(target, contact){
 async function getNewUsers(callBack){
 
   amoRepo.getAll().then(amoData=>{
-    const filteredAmoData=amoData.filter(contact=>contact.name.length>4 && (contact.Email!=null || contact.Phone!=null )&& (!contact.name.includes("Llamada saliente")));
+    const filteredAmoData=amoData.filter(contact=>contact.name.length>1 && (contact.Email!=null || contact.Phone!=null )&& (!contact.name.includes("Llamada saliente")) && (!contact.name.includes("prueba")));
     const filteredAmoData2 = filteredAmoData.reduce((acc, current) => {
       //  const x = acc.find(item =>  (item.Email!=null && item.Email === current.Email) || 
       //                              comparePhones(item.Phone,current.Phone));
@@ -520,7 +535,7 @@ async function getNewUsers(callBack){
 
         return acc.concat([current]);
       } else {
-          console.log("encontrado", x.Email)
+          //console.log("encontrado", x.Email)
           //  console.log("current", current )
           //  console.log("contact with more info:",returnContactWithMoreInfo(current,x));
            acc[index]=returnContactWithMoreInfo(current,x);
@@ -598,7 +613,7 @@ async function getCommonDoliUsers(callBack){
               })
                //console.log("contact found", foundContact , "amo", contact)
               if(foundContact){
-                console.log("contact found", foundContact , "doli", contact)
+                //console.log("contact found", foundContact , "doli", contact)
                   users.push(contact)
               }
           }
@@ -607,11 +622,34 @@ async function getCommonDoliUsers(callBack){
   })
 }
 
+function filterContacts(contact){
+ 
+    if((contact.name.length<1) || (contact.name.includes("Llamada saliente")) || (contact.Email=="jmbere@gmail.com")){
+      //console.log("contact is", contact)
+      return false;
+    }else if((contact.Email!=null || contact.Phone!=null )){
+      return true;
+    }else{
+ 
+      return false;
+    }
+}
+function filterDoliContacts(contact){
+  if((contact.name.length<4) || (contact.name.includes("Llamada saliente")) || (contact.email=="jmbere@gmail.com")){
+    return false;
+  }else if((contact.email!=null || contact.phone!=null )){
+    return true;
+  }else{
+    return false;
+  }
+}
 
 async function getNewToAmo(callBack){
   
   amoRepo.getAll().then(amoData=>{
-    const filteredAmoData=amoData.filter(contact=>contact.Email!=null || contact.Phone!=null);
+     //const filteredAmoData=amoData.filter( contact=>((contact.name.length>4) && (contact.Email!=null || contact.Phone!=null ) && (contact.name.includes("Llamada saliente")) && (contact.Email!="jmbere@gmail.com"))) ;
+      const filteredAmoData=amoData.filter(filterContacts) ;
+      //console.log("filtred", filteredAmoData)
     const filteredAmoData2 = filteredAmoData.reduce((acc, current) => {
       const x = acc.find(item => item.Email!=null && item.Email.length>6 && item.Email === current.Email);
       if (!x) {
@@ -624,7 +662,7 @@ async function getNewToAmo(callBack){
 
     let users=[];
         doliRepo.getAll().then(doliData=>{
-          const filterDoliData=doliData.filter(contact=>contact.email!=null || contact.phone!=null);
+          const filterDoliData=doliData.filter(filterDoliContacts);
           const filterDoliData2 = filterDoliData.reduce((acc, current) => {
                             const x = acc.find(item => item.email!=null && item.email.length>6 && item.email === current.email);
                             if (!x) {
@@ -634,11 +672,17 @@ async function getNewToAmo(callBack){
                               return acc;
                             }
                           }, []);  
+                         
           for( let contact of filterDoliData2){
               //console.log("user:", user)
-              const foundContact=filteredAmoData.find(amoUser=> { 
+              const foundContact=filteredAmoData2.find(amoUser=> { 
+                // if(amoUser.Email=='falconveragisela@yahoo.com.ar'){
+                  //console.log("amo is :", amoUser.Email)
+                  //console.log("doli is :", contact.email)
+                // }
                 if(contact.email){
-                  if( contact.email==amoUser.Email){
+                  if(contact.email==amoUser.Email){
+                   
                       return true;
                   }
                 }
@@ -663,6 +707,8 @@ async function getNewToAmo(callBack){
               })
                //console.log("contact found", foundContact , "amo", contact)
               if(!foundContact){
+                  if(contact.email=='@')
+                    contact.email='';
                   users.push(contact)
               }
           }

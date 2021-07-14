@@ -8,8 +8,6 @@
     <script> 
         function clickAndDisable(link) {
           // disable subsequent clicks
-            
-         
           link.onclick = function(event) {
             console.log("id:", link.id)
              event.preventDefault();
@@ -61,6 +59,7 @@
             <th>Email</th>
             <th>Telefono</th>
             <th>Tags</th>
+            <th>AmoLink</th>
             
             
             
@@ -77,6 +76,7 @@
                     <td><%= users[i].Email %> </td>
                     <td> <%= users[i].Phone %> </td>
                     <td> <%= users[i].Tags %> </td>
+                    <td> <a href=<%= users[i].Link %> target="blank"><%= users[i].Link %> </a></td>
                  
                   
                     
