@@ -36,6 +36,7 @@ class AmoUsersRepository{
         return this.dao.run('DELETE FROM amousers WHERE id=?', [id]);
     }
     getByID(id){
+        console.log("trying to fetch amo user id", id);
         return this.dao.run('SELECT * FROM amousers WHERE id=?', [id]);
     }
     getAll() {
