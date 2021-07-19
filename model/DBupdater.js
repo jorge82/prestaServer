@@ -487,7 +487,7 @@ module.exports.updateAmoContact=function updateAmoContact(contact){
   console.log("amo user to update", contactInfo);
   amoRepo.update(contactInfo);
   amoRepo.getByID(contactInfo.id).then((amoUsers)=>{
-    console.log("amouser fetched by id", amousers);
+    console.log("amouser fetched by id", amoUsers);
     if(amoUsers.length>0){
       const user= amoUsers[0];
       if(user.DoliID>0){
