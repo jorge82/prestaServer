@@ -52,9 +52,9 @@ function addContatToDoli(url, token, newUser){
 
 function editContactInDoli(url, token, user, id){
 
-    //console.log("Adding user:", user, "to doli");
+    
     const URL= 'http://'+url+'/api/index.php/thirdparties/'+id;
-
+    console.log("editing user:",user,"with url:", URL);
     return axios.put(URL,
         {
             "name": user.name,

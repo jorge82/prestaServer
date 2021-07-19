@@ -500,7 +500,8 @@ module.exports.updateAmoContact=function updateAmoContact(contact){
             doliRepo.update(doliUSer);
         })
         }catch(e){
-            //throw new Error(e);
+          console.log("Error:", e);
+              //throw new Error(e);
         }
       }
     }
