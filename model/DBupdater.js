@@ -491,6 +491,8 @@ module.exports.updateAmoContact=function updateAmoContact(contact){
   //console.log("converted id", ID);
   amoRepo.getByID(ID).then(amoUsers=>{
     console.log("amouser fetched by id", amoUsers);
+
+    /* si se enceuntra el usuario */
     if(amoUsers.length>0){
       const user= amoUsers[0];
       if(user.DoliID>0){
@@ -500,9 +502,21 @@ module.exports.updateAmoContact=function updateAmoContact(contact){
             doliRepo.update(doliUSer);
         })
         }catch(e){
-          console.log("Error:", e);
+            console.log("Error:", e);
               //throw new Error(e);
         }
+      }else{
+        addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
+          try{
+              contactInfo["DoliID"]=doliUserId;
+              const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
+              doliRepo.insert(newDoliUSer);
+              amoRepo.insert(contactInfo);
+          }catch(e){
+              console.log("Error:", e);
+          }
+      })
+
       }
     }
   })
