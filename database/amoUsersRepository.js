@@ -36,7 +36,7 @@ class AmoUsersRepository{
         return this.dao.run('DELETE FROM amousers WHERE id=?', [id]);
     }
     getByID(id){
-        return this.dao.get('SELECT * FROM amousers WHERE id=?', [id]);
+        return this.dao.run('SELECT * FROM amousers WHERE id=?', [id]);
     }
     getAll() {
         return this.dao.all(`SELECT * FROM amousers`)
