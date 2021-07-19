@@ -71,7 +71,7 @@ function editContactInDoli(url, token, user){
         return response.data.id;
     })
     .catch(e=>{
-        console.log("Error adding link contact ",userId ,"to doli.",e);
+        console.log("Error adding link contact ",user.Id ,"to doli.",e);
         throw new Error ("Error adding user to doli");
     });
 }
