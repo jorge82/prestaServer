@@ -486,7 +486,10 @@ module.exports.updateAmoContact=function updateAmoContact(contact){
   }
   console.log("amo user to update", contactInfo);
   amoRepo.update(contactInfo);
-  amoRepo.getByID(contactInfo.id).then((amoUsers)=>{
+  console.log("id", contactInfo.id);
+  const ID= parseInt(contactInfo.id, 10);
+  console.log("converted id", ID);
+  amoRepo.getByID(ID).then((amoUsers)=>{
     console.log("amouser fetched by id", amoUsers);
     if(amoUsers.length>0){
       const user= amoUsers[0];
