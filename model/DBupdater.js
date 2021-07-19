@@ -495,7 +495,7 @@ module.exports.updateAmoContact=function updateAmoContact(contact){
       const user= amoUsers[0];
       if(user.DoliID>0){
         try{
-           editContactInDoli(URLDoli, TOKENDoli,contactInfo, DoliID).then((doliUserId)=>{
+           editContactInDoli(URLDoli, TOKENDoli,contactInfo, user.DoliID).then((doliUserId)=>{
             const doliUSer={id:user.DoliID , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
             doliRepo.update(doliUSer);
         })
