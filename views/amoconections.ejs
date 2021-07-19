@@ -44,7 +44,7 @@
     <div>
         <a href="/amo/refreshtoken" class="button">Update tokens</a>
         
-        <form name="formConection" method='POST' action="/amoconnections">
+        <form name="formConection" method='POST' action="/amo/connections">
             <input type="text" id="url" name='url' placeholder="insertar url"><br>
             <input type="text" id="claveSecreta" name='claveSecreta' placeholder="insertar clave secreta"><br>
             <input type="text" id="idIntegracion" name='id' placeholder="insertar id de integración"><br>     
@@ -70,7 +70,7 @@
                     <td > <%=conections[i].refreshToken %> </td>
                     <td> 
                         <!-- <a class='editButton' href="/conections/edit/<%=i %>"  >Editar</a>  -->
-                        <a class="deleteButton" href="/amoconnections/delete?id=<%=conections[i].url %>"  >Quitar</a>
+                        <a class="deleteButton" href="/amo/connections/delete?id=<%=conections[i].url %>"  >Quitar</a>
                     </td>
                     
                 </tr>

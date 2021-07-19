@@ -35,6 +35,7 @@
   </div>
   <a href="/getamocontacts" class="button">Buscar nuevos usuarios</a>
   <a href="/combined/export" class="button">Exportar a excel</a>
+  <a href="/combined/updateCommonLinksDoli" class="button">UpdateAmoLinksInDoli</a>
   
    
     <div>
@@ -53,6 +54,7 @@
             <th>CP</th>
             <th>Ciudad</th>
             <th>Pais</th>
+            <th>AmoLink</th>
             <!-- <th>twitter</th>
             <th>facebook</th>
             <th>linkedin</th> -->
@@ -73,6 +75,7 @@
                     <td><%= users[i].zip %> </td>
                     <td> <%= users[i].city %> </td>
                     <td> <%= users[i].country %> </td>
+                    <td> <a href=<%= users[i].link %> target="blank"><%= users[i].link %> </a></td>
                     <!-- <td> <%= users[i].twitter %> </td>
                     <td> <%= users[i].facebook %> </td>
                     <td> <%= users[i].linkedin %> </td> -->

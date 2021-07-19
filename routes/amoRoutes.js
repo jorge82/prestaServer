@@ -6,7 +6,7 @@ const { auth, requiresAuth } = require("express-openid-connect");
 
 const {getContacts,getAccessToken, refreshAccessToken}= require('../Api/ApiAmo');
 
-const {updateAmoToken,  updateAmoContacts, exportAmoUsers, getAmoUsers , deleteAmoConnections,getAllAmoConnections}=require('../model/DBupdater')
+const {updateAmoToken,  updateAmoContacts, exportAmoUsers, getAmoUsers , deleteAmoConnection,getAllAmoConnections, insertAmoConmnection}=require('../model/DBupdater')
 
 
   
@@ -22,63 +22,31 @@ const {updateAmoToken,  updateAmoContacts, exportAmoUsers, getAmoUsers , deleteA
     })
       
   
-  routes.post('/connections', requiresAuth(),(req,res)=>{
+  routes.post('/connections', requiresAuth(),(req,res, next)=>{
     console.log("body: ", req.body)
   
     if((req.body.claveSecreta=="") || (req.body.url=="" )|| (req.body.code=="" )|| (req.body.id=="" )){
-  
-      conectionRepo.getAll().then((rows)=>{
+        console.log("Here")
+      // conectionRepo.getAll().then((rows)=>{
       
-        res.render('amoconections', {conections:rows,  message: {type:'error', text:'Por favor complete todos los campos'}});
+      //   res.render('amoconections', {conections:rows,  message: {type:'error', text:'Por favor complete todos los campos'}});
+      // })
+       res.status(200).render('amoconections', {conections:[],message:{type:'error', text:'Faltan datos!'}});
+    }else{
+
+      insertAmoConmnection(req.body.url, req.body.id,req.body.claveSecreta,req.body.code,(err, newConect)=>{
+        if(err){
+            next(err);
+        }else{
+          let data=[];
+          data.push(newConect)
+          res.render('amoconections', {conections:data,  message: {type:'success', text:'Coneccion agregada con exito'}});
+        }
+
+
       })
     
-    }else{
-      console.log(req.body.url)
-      console.log(req.body.id)
-      
-      console.log(req.body.claveSecreta)
-      console.log(req.body.code)
-      
-      
-      getAccessToken(req.body.url,req.body.id,req.body.claveSecreta,req.body.code)
-    .then(data=>{
-      console.log("datos:", data)
-      if(data.access_token){
-        
-  
-        var newConection={
-          accessToken: data.access_token,
-          url:req.body.url,
-          clientId:req.body.id,
-          clientSecret:req.body.claveSecreta,
-          refreshToken:data.refresh_token
-        }
-  
-        amoconectionRepo.insert(newConection)
-        .then((data)=>{
-          console.log(data)
-          amoconectionRepo.getAll().then((rows)=>{
-          
-            res.render('amoconections', {conections:rows,  message: {type:'success', text:'Coneccion agregada con exito'}});
-          })
-          })
-          
-        .catch(err=>{
-          amoconectionRepo.getAll().then((rows)=>{
-            console.log("conections: ", rows);
-            res.render('amoconections', {conections:rows,  message: {type:'error', text:err}});
-          })
-        })
-  
-      }else{
-        amoconectionRepo.getAll().then((rows)=>{
-          console.log("conections: ", rows);
-          res.render('amoconections', {conections:rows,  message: {type:'error', text:"Error al conectarse"}});
-        })
-      }
-      
-    })      
-    }
+     }
   })
 
 

@@ -53,6 +53,7 @@ app.use(auth(config));
 const INTERVALODEACTUALIZACION=3600000;
 //setInterval(updatePrestaData, INTERVALODEACTUALIZACION);
 //Actualizo los los contactos de amo
+/*
 setInterval(()=>{updateAmoContacts(1,(error)=>{
         if(error){
                   console.log(error);
@@ -71,6 +72,7 @@ setInterval(()=>{updateAmoContacts(1,(error)=>{
         });
       }
  }) } , INTERVALODEACTUALIZACION);
+
 //a los 10 minutos actualizo los contactos de amo
 setInterval( ()=>{
   updateDoliContacts((error)=>{
@@ -86,7 +88,7 @@ setInterval( ()=>{
     })
   }, INTERVALODEACTUALIZACION + 60000);
 
-
+*/
 /* Intervalo de actualiacion del token cada 8 horas y media */
 const INTERVALODEACTUALIZACIONTOKEN=30600000;
 setInterval(updateAmoToken, INTERVALODEACTUALIZACIONTOKEN);

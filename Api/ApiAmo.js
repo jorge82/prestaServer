@@ -43,10 +43,11 @@ console.log("fetching page:", page)
         console.log("calling")
       
           return data.concat( await getContacts2(url,accessToken, page+1));
+         
         }else{
 
           console.log("termino")
-          return data;
+          return data;        
          } 
       
         }catch(error)  {
@@ -72,7 +73,7 @@ async function getAccessToken(url, id_integracion, clave_secreta, codigo_auto ){
   })
   .catch((error) => {
     console.error("error:", error)
-    throw new Error("Error geting access token");
+    throw new Error("Error getting access token");
     
   })
 

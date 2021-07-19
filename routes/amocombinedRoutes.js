@@ -3,7 +3,7 @@ const routes = express.Router();
 
 const { auth, requiresAuth } = require("express-openid-connect");
 
-const {updateAmoToken, addNewAmoContact,deleteAmoContact, updateAmoContact, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, getNewToAmo,updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli}=require('../model/DBupdater')
+const {updateAmoToken, addNewAmoContact,deleteAmoContact, updateAmoContact, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, getNewToAmo,updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli, updateAmoLinkInDoli}=require('../model/DBupdater')
 
 const { convertDoliFormatToAmo} = require("../utils/utils")
 
@@ -35,6 +35,20 @@ const { convertDoliFormatToAmo} = require("../utils/utils")
    
     res.status(200).send(newContacts);
 
+  })
+
+  routes.get('/updateCommonLinksDoli',requiresAuth(),(req,res, next)=>{
+   
+      updateAmoLinkInDoli((err)=>{
+        if (err){
+          next(err);
+        }else{
+          res.status(200);
+        }
+      }); 
+
+      //res.render('combinedDoli', {users:common});
+  
   })
 
   routes.get('/combinedDoli', requiresAuth(),(req,res)=>{

@@ -10,7 +10,7 @@ const DoliUsersRepository = require ('../database/doliUsersRepository')
 
 const {getContacts,getAccessToken, refreshAccessToken, addContactsToAmo}= require('../Api/ApiAmo');
 
-const {getContactsFromDoli,addContatToDoli}= require('../Api/ApiDoli')
+const {getContactsFromDoli,addContatToDoli,editContactLinkInDoli,editContactInDoli}= require('../Api/ApiDoli')
 
 
 const {exportExcel, filterContactData} = require('../utils/utils');
@@ -33,10 +33,83 @@ client.on("error", function(error) {
   console.error(error);
 });
 
+module.exports.updateAmoLinkInDoli = async function updateAmoLinkInDoli(callback){
 
-async function insertAmoConmnection(newconection, callback){
+  const URLDoli='dbarg.doli.ar/htdocs';
+  const TOKENDoli="fp8x6y95";
 
-  //const data= await getAccessToken(url,id,body.claveSecreta,code); 
+
+  console.log("New doli contacts to fetch!!")
+
+  getCommonDoliUsers(async (users)=>{
+    //doliUsers=users.slice(5000,5210);
+    doliUsers=users;
+    const usersToAdd=doliUsers.length;
+
+    const userBatch=10;
+    console.log("# of users to edit", usersToAdd)
+     console.log(" users to edit link", doliUsers)
+    let initialValue=0;
+    let i=0;
+    while (i<usersToAdd) {
+        let promises=[];
+        //agrego usuarios;
+        let max=initialValue+userBatch;
+        
+        for ( i=initialValue;i<max; i++){
+          if(i<usersToAdd){
+            //console.log("updating user", doliUsers[i]);  
+            promises.push(editContactLinkInDoli(URLDoli, TOKENDoli,doliUsers[i]));
+          }    
+        }
+  
+        try{
+            await Promise.all(promises);
+                  console.log("Adding users bach", i-userBatch,"-",i-1 );
+                  initialValue=i;
+                  if(i>=usersToAdd-1){
+                    console.log("Finished adding users");
+                    callback(null);
+                  }
+          }catch (e) {
+                callback(e);
+            }
+    }
+   
+  })
+
+
+}
+
+module.exports.insertAmoConmnection= async function insertAmoConmnection(url, integrationId, secretKey, code,callback){
+
+  getAccessToken(url,integrationId,secretKey,code)
+    .then(data=>{
+      console.log("datos:", data)
+        var newConection={
+          accessToken: data.access_token,
+          url:url,
+          clientId: integrationId,
+          clientSecret:secretKey,
+          refreshToken:data.refresh_token
+        }
+  
+        amoconectionRepo.insert(newConection)
+          .then((data)=>{
+            console.log("new connection", data);
+            callback(null, newConection);
+          })
+          
+        .catch(err=>{
+              callback(err);
+        })
+  
+      
+      
+    }).catch(err=>{
+      callback(err);
+})
+
 
 }
 module.exports.exportAmoUsers= async function exportAmoUsers(callback){
@@ -155,6 +228,7 @@ module.exports.getDoliUsers= async function getDoliUsers(callback){
 module.exports.deleteAmoConnection= async function deleteAmoConnection(id, callback){
    try{
      const response = await amoconectionRepo.delete(id);
+     const response2 = await amoRepo.deleteAll();
      callback(null);
    }
    catch(error){
@@ -166,6 +240,7 @@ module.exports.deleteAmoConnection= async function deleteAmoConnection(id, callb
 returns connecions with a callback */
 module.exports.getAllAmoConnections= async function getAllAmoConnections(callback){
   amoconectionRepo.getAll().then((rows)=>{
+    //console.log("data", rows)
     callback(null, rows);
   })
   .catch((error)=>{
@@ -350,6 +425,10 @@ function updateAmoUsersInRedis(){
 module.exports.addNewAmoContact=function addNewAmoContact(contact){
   let allTags=[];
   const amoLink="https://jmbere.amocrm.com/contacts/detail/"+contact.id;
+  const URLDoli='dbarg.doli.ar/htdocs';
+  const TOKENDoli="fp8x6y95";
+
+  
   let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join(), Link:amoLink, DoliId:0}
 
   if(contact.custom_fields){
@@ -363,7 +442,18 @@ module.exports.addNewAmoContact=function addNewAmoContact(contact){
             
       })
   }
-  amoRepo.insert(contactInfo);
+
+  addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
+      try{
+          contactInfo["DoliID"]=doliUserId;
+          const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
+          doliRepo.insert(newDoliUSer);
+          amoRepo.insert(contactInfo);
+      }catch(e){
+          throw new Error(e);
+      }
+  })
+  
 
 }
 module.exports.deleteAmoContact=function deleteAmoContact(contact){
@@ -372,14 +462,16 @@ module.exports.deleteAmoContact=function deleteAmoContact(contact){
       amoRepo.delete(contact.id);
 }
 module.exports.updateAmoContact=function updateAmoContact(contact){
-
+  const amoLink="https://jmbere.amocrm.com/contacts/detail/"+contact.id;
+  const URLDoli='dbarg.doli.ar/htdocs';
+  const TOKENDoli="fp8x6y95";
   let allTags=[];
   if(contact.tags){
     for(let tag of contact.tags){
       allTags.push(tag.name);
     } 
   }
-  let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join()}
+  let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join(), Link:amoLink }
 
   if(contact.custom_fields){
       contact.custom_fields.map(custom=>{
@@ -394,8 +486,21 @@ module.exports.updateAmoContact=function updateAmoContact(contact){
   }
   
   amoRepo.update(contactInfo);
-
-
+  amoRepo.getByID(contactInfo.id).then((amoUsers)=>{
+    if(amoUsers.length>0){
+      const user= amoUsers[0];
+      if(user.DoliID>0){
+        try{
+           editContactInDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
+            const doliUSer={id:user.DoliID , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
+            doliRepo.update(doliUSer);
+        })
+        }catch(e){
+            throw new Error(e);
+        }
+      }
+    }
+  })
 }
 
 
@@ -407,8 +512,11 @@ function updateAmoContacts(numberRetries, callback){
     let page=1;
     amoconectionRepo.getAll().then(rows=>{
       if(rows.length>0){
+        //var start = new Date()
       
         getContacts(rows[0].url, rows[0].accessToken, page).then(data=>{
+
+          //console.log("Time to fetch amo users: %dms",new Date() - start );
           //amoRepo.getAll().then(rows=>{
           amoRepo.deleteAll().then(()=>{  
             //const datos_actuales=rows; 
@@ -509,7 +617,50 @@ function returnContactWithMoreInfo( currentData, contact){
   }
 
 }
+function returnDoliContactWithMoreInfo( currentData, contact){
+  let contactWithMoreInfo=currentData;
+  try{
+          //si el contacto tiene correo y no el guardado
+        if((contact.email)&& (!currentData.email)){
+            contactWithMoreInfo=contact;
+        }else if((contact.phone)&& (!currentData.phone)){
+            contactWithMoreInfo=contact;    
+        }else if ((contact.lastName)&& (!currentData.firstName)){
+            contactWithMoreInfo=contact;
+        }
 
+    
+    return contactWithMoreInfo;
+  }
+
+  catch(e){
+      console.log("Error:", e);
+      return {};
+  }
+
+}
+
+
+function amoContactIsValid(contact){
+    if(!contact.Email && !contact.Phone || (!isNaN(contact.name))){
+      //console.log("not email and not phone")
+      return false;
+    }else if (contact.name.includes("Llamada") || contact.name.includes("prueba") || contact.name.includes('atencion amo') || contact.name.includes('Google')){
+      //console.log("filtrado por llamadas")
+      return false;
+    }else if( contact.Email){
+      let emailEnding=contact.Email.split('@')[1];
+      if(contact.Email.includes('noreply')){
+        return false;
+      }else if  ((contact.Email=='uber@uber.com') || (emailEnding=="rackear.com.ar") ||(emailEnding=="blocket.com.ar") || (emailEnding=="db-arg.com") || (emailEnding=="musitec.com.ar") || (emailEnding=="dbdrums.com.ar")) {
+            return false;
+        }else{
+            return true;
+        }
+    }else{
+      return true;
+    }
+}
 function contactIsPresent(target, contact){
 
   if((target.Email!=null && contact.Email!=null &&  target.Email === contact.Email) || (comparePhones(target.Phone,contact.Phone))){
@@ -519,200 +670,295 @@ function contactIsPresent(target, contact){
   }
 
 }
+function doliContactIsPresent(target, contact){
+
+  if((target.email!=null && contact.email!=null &&  target.email === contact.email) || (comparePhones(target.phone,contact.phone))){
+    return true;
+  } else{
+    return false;
+  }
+
+}
+function  removeAmoDuplicate(users){
+  if(users.length==0){
+    return users;
+  }else{
+  const filteredData = users.reduce((acc, current) => {
+      
+      const x = acc.find(item => contactIsPresent(current, item));
+      const index = acc.findIndex(item => contactIsPresent(current, item));
+      
+        if (!x) {
+          return acc.concat([current]);
+        } else {
+            acc[index]=returnContactWithMoreInfo(current,x);
+          return acc;
+        }
+  }, []);
+  return filteredData;
+  }
+}
+
+function generateDoliEmailSet(doliusers){
+    let usersSet= new Set();
+    for(let user of doliusers){
+      usersSet.add(user.email);
+    }
+    return usersSet;
+}
+function generateDoliPhoneSet(doliusers){
+  let usersSet= new Set();
+  for(let user of doliusers){
+    if(user.phone){
+    var phone=user.phone.replace(/[- +]/g,'')
+    var lastSix = phone.substr(phone.length - 6);
+    usersSet.add(lastSix);
+    }
+  }
+  return usersSet;
+}
+function convertPhone(phone){
+    var phoneString=phone.replace(/[- +]/g,'')
+    var lastSix = phoneString.substr(phoneString.length - 6);
+    return lastSix;
+}
+
+
+function amoUserIsInDoli(doliEmailSet, doliPhoneSet, amouser){
+  let foundContact=false;
+ 
+    //console.log(doliSet);
+    //console.log(doliphoneSet);
+        if(amouser.Email){
+            if(doliEmailSet.has(amouser.Email)){
+              foundContact=true;
+            }
+        }
+        if(amouser.Phone){
+          if(doliPhoneSet.has(convertPhone(amouser.Phone))){
+            foundContact=true;
+          }
+        }
+        return foundContact;
+  }
+
+  function doliUserIsInAmo(amoEmailSet, amoPhoneSet, doliuser){
+    let foundContact=false;
+   
+      //console.log(doliSet);
+      //console.log(doliphoneSet);
+          if(doliuser.email){
+              if(amoEmailSet.has(doliuser.email)){
+                foundContact=true;
+              }
+          }
+          if(doliuser.phone){
+            if(amoPhoneSet.has(convertPhone(doliuser.phone))){
+              foundContact=true;
+            }
+          }
+          return foundContact;
+    }
 
 
 async function getNewUsers(callBack){
-
+  //var start = new Date()
   amoRepo.getAll().then(amoData=>{
-    const filteredAmoData=amoData.filter(contact=>contact.name.length>1 && (contact.Email!=null || contact.Phone!=null )&& (!contact.name.includes("Llamada saliente")) && (!contact.name.includes("prueba")));
-    const filteredAmoData2 = filteredAmoData.reduce((acc, current) => {
-      //  const x = acc.find(item =>  (item.Email!=null && item.Email === current.Email) || 
-      //                              comparePhones(item.Phone,current.Phone));
-     const x = acc.find(item => contactIsPresent(current, item));
-     const index = acc.findIndex(item => contactIsPresent(current, item));
-     
-      if (!x) {
+    //console.log("Time to get amo  data: %dms",new Date() - start );
+    var start1 = new Date()
+    const filteredAmoData=amoData.filter(contact=>{return(amoContactIsValid(contact))});
 
-        return acc.concat([current]);
-      } else {
-          //console.log("encontrado", x.Email)
-          //  console.log("current", current )
-          //  console.log("contact with more info:",returnContactWithMoreInfo(current,x));
-           acc[index]=returnContactWithMoreInfo(current,x);
-        
-        return acc;
-      }
-    }, []);  
-    
+    //console.log("Time to filter amo: %dms",new Date() - start1 );
+   
     let newUsers=[];
         doliRepo.getAll().then(doliData=>{
-          for( let contact of filteredAmoData2){
-              //console.log("user:", user)
-              const foundContact=doliData.find(doliUSer=> { 
-                if(contact.Email){
-                
-                  if( contact.Email==doliUSer.email){
-                      return true;
-                  }
-                }
-                return comparePhones(contact.Phone, doliUSer.phone);
-              })
-               //console.log("contact found", foundContact , "amo", contact)
+          //creo dos set a modo de indice para bajar el tiempo de búsqueda
+          let doliEmailSet=generateDoliEmailSet(doliData);
+          let doliPhoneSet= generateDoliPhoneSet(doliData); 
+          //console.log(doliSet);
+          //console.log(doliphoneSet);
+          var start2 = new Date()
+          let foundContact=false;
+          for( let contact of filteredAmoData){
+  
+              foundContact=amoUserIsInDoli(doliEmailSet, doliPhoneSet, contact);
               if(!foundContact){
-                if(filterContactData(contact)){
                   newUsers.push(contact)
-                }
               }
+             
           }
-          callBack(newUsers);
+          let usersWithOutDup=removeAmoDuplicate(newUsers);
+          //console.log("Time to compare: %dms",new Date() - start2 );
+          //console.log("Time to find new users: %dms",new Date() - start );
+          callBack(usersWithOutDup);
         })
   })
 }
 
 async function getCommonDoliUsers(callBack){
-  
+  //var start = new Date()
   amoRepo.getAll().then(amoData=>{
-    const filteredAmoData=amoData.filter(contact=>contact.Email!=null || contact.Phone!=null);
-    const filteredAmoData2 = filteredAmoData.reduce((acc, current) => {
-      const x = acc.find(item => item.Email === current.Email);
-      if (!x) {
-        return acc.concat([current]);
-      } else {
-        return acc;
-      }
-    }, []);  
-    
+    const filteredAmoData=amoData.filter(contact=>{return(amoContactIsValid(contact))});
+  
     let users=[];
         doliRepo.getAll().then(doliData=>{
-          for( let contact of doliData){
-              //console.log("user:", user)
-              const foundContact=filteredAmoData.find(amoUser=> { 
-                if(contact.email){
-                  if( contact.email==amoUser.Email){
-                      return true;
-                  }
-                }
-                 if((contact.phone)&&(amoUser.Phone)){
 
-                          var phone=contact.phone.replace(/[- +]/g,'')
-                          var phone2=amoUser.Phone.replace(/[- +]/g,'')
-
-                          var lastSixAmo = phone.substr(phone.length - 6); 
-                          var lastSixDoli = phone2.substr(phone2.length - 6); 
-                   
-                          if(lastSixAmo==lastSixDoli){    
-
-                              console.log("Encontrado!!!:", contact, amoUser);
-                              return true;
-                          }else{
-                              return false;
-                          }
-                  }else{
-                      return false;
-                  }
-              })
+          const filterDoliData=doliData.filter(filterDoliContacts);
+       
+          let amoEmailSet=generateAmoEmailSet(filteredAmoData);
+          let amoPhoneSet= generateAmoPhoneSet(filteredAmoData); 
+          let amoEmailDic=generateAmoEmailDictionary(filteredAmoData);  
+          let amoPhoneDic=generateAmoPhoneDictionary(filteredAmoData);          
+            //console.log(amoEmailDic);
+            //console.log(amoPhoneDic);
+            let foundContact=false;
+          for( let contact of filterDoliData){
+              
+              foundContact=doliUserIsInAmo(amoEmailSet, amoPhoneSet, contact)
                //console.log("contact found", foundContact , "amo", contact)
               if(foundContact){
                 //console.log("contact found", foundContact , "doli", contact)
+                  
+                      
+                  if(amoEmailDic[contact.email]){
+                    contact.link= amoEmailDic[contact.email];
+                  }else{
+                    //console.log("contatc", contact)
+                    contact.link= amoPhoneDic[convertPhone(contact.phone)];
+                  }    
                   users.push(contact)
               }
           }
+          //let usersWithOutDup=removeDoliDuplicate(users)
+          //console.log("Time to find common users: %dms",new Date() - start );
           callBack(users);
         })
   })
 }
 
-function filterContacts(contact){
- 
-    if((contact.name.length<1) || (contact.name.includes("Llamada saliente")) || (contact.Email=="jmbere@gmail.com")){
-      //console.log("contact is", contact)
-      return false;
-    }else if((contact.Email!=null || contact.Phone!=null )){
-      return true;
-    }else{
- 
-      return false;
-    }
-}
+
 function filterDoliContacts(contact){
-  if((contact.name.length<4) || (contact.name.includes("Llamada saliente")) || (contact.email=="jmbere@gmail.com")){
+
+  if(!contact.email && !contact.phone || (!isNaN(contact.name) || (contact.email=="jmbere@gmail.com") || (contact.email=="@"))){
+    //console.log("not email and not phone")
     return false;
-  }else if((contact.email!=null || contact.phone!=null )){
-    return true;
+  }else if (contact.name.includes("Llamada") || contact.name.includes("prueba") || contact.name.includes('atencion amo') || contact.name.includes('Google')){
+    //console.log("filtrado por llamadas")
+    return false;
+  }else if( contact.email){
+    let emailEnding=contact.email.split('@')[1];
+    if(contact.email.includes('noreply')){
+      return false;
+    }else if  ((contact.email=='uber@uber.com') || (emailEnding=="rackear.com.ar") ||(emailEnding=="blocket.com.ar") || (emailEnding=="db-arg.com") || (emailEnding=="musitec.com.ar") || (emailEnding=="dbdrums.com.ar")) {
+          return false;
+      }else{
+          return true;
+      }
   }else{
-    return false;
+    return true;
   }
+
 }
 
+function generateAmoEmailSet(amousers){
+  let usersSet= new Set();
+  for(let user of amousers){
+    usersSet.add(user.Email);
+  }
+  return usersSet;
+}
+
+function generateAmoEmailDictionary(amousers){
+    let emailDic= new Object();
+    for(let user of amousers){
+      if(user.Email){
+        emailDic[user.Email]=user.Link;
+      } 
+    }
+    return emailDic;
+}
+function generateAmoPhoneDictionary(amousers){
+  let phoneDic= new Object();
+  for(let user of amousers){
+    if(user.Phone){
+      var phone=user.Phone.replace(/[- +]/g,'')
+      var lastSix = phone.substr(phone.length - 6);
+      phoneDic[lastSix]=user.Link;
+      } 
+  }
+  return phoneDic;
+}
+function generateAmoPhoneSet(amousers){
+let usersSet= new Set();
+for(let user of amousers){
+  if(user.Phone){
+  var phone=user.Phone.replace(/[- +]/g,'')
+  var lastSix = phone.substr(phone.length - 6);
+  usersSet.add(lastSix);
+  }
+}
+return usersSet;
+}
+function  removeDoliDuplicate(users){
+  if(users.length==0){
+    return users;
+  }else{
+  const filteredData = users.reduce((acc, current) => {
+      
+      const x = acc.find(item => doliContactIsPresent(current, item));
+      const index = acc.findIndex(item => doliContactIsPresent(current, item));
+      
+        if (!x) {
+          return acc.concat([current]);
+        } else {
+            acc[index]=returnDoliContactWithMoreInfo(current,x);
+          return acc;
+        }
+  }, []);
+  return filteredData;
+  }
+}
 async function getNewToAmo(callBack){
+  //var start = new Date()
   
   amoRepo.getAll().then(amoData=>{
-     //const filteredAmoData=amoData.filter( contact=>((contact.name.length>4) && (contact.Email!=null || contact.Phone!=null ) && (contact.name.includes("Llamada saliente")) && (contact.Email!="jmbere@gmail.com"))) ;
-      const filteredAmoData=amoData.filter(filterContacts) ;
+     
+      const filteredAmoData=amoData.filter(contact=>{return(amoContactIsValid(contact))}) ;
       //console.log("filtred", filteredAmoData)
-    const filteredAmoData2 = filteredAmoData.reduce((acc, current) => {
-      const x = acc.find(item => item.Email!=null && item.Email.length>6 && item.Email === current.Email);
-      if (!x) {
-        return acc.concat([current]);
-      } else {
-        //console.log("founde amo", current.Email)
-        return acc;
-      }
-    }, []);  
+    
 
     let users=[];
         doliRepo.getAll().then(doliData=>{
           const filterDoliData=doliData.filter(filterDoliContacts);
-          const filterDoliData2 = filterDoliData.reduce((acc, current) => {
-                            const x = acc.find(item => item.email!=null && item.email.length>6 && item.email === current.email);
-                            if (!x) {
-                              return acc.concat([current]);
-                            } else {
-                              //console.log("founded", current.email)
-                              return acc;
-                            }
-                          }, []);  
-                         
-          for( let contact of filterDoliData2){
-              //console.log("user:", user)
-              const foundContact=filteredAmoData2.find(amoUser=> { 
-                // if(amoUser.Email=='falconveragisela@yahoo.com.ar'){
-                  //console.log("amo is :", amoUser.Email)
-                  //console.log("doli is :", contact.email)
-                // }
-                if(contact.email){
-                  if(contact.email==amoUser.Email){
-                   
-                      return true;
-                  }
-                }
-                 if((contact.phone)&&(amoUser.Phone)){
-
-                          var phone=contact.phone.replace(/[- +]/g,'')
-                          var phone2=amoUser.Phone.replace(/[- +]/g,'')
-
-                          var lastSixAmo = phone.substr(phone.length - 6); 
-                          var lastSixDoli = phone2.substr(phone2.length - 6); 
-                   
-                          if(lastSixAmo==lastSixDoli){    
-
-                              //console.log("Encontrado!!!:", contact, amoUser);
-                              return true;
-                          }else{
-                              return false;
-                          }
-                  }else{
-                      return false;
-                  }
-              })
-               //console.log("contact found", foundContact , "amo", contact)
+       
+          let amoEmailSet=generateAmoEmailSet(filteredAmoData);
+          let amoPhoneSet= generateAmoPhoneSet(filteredAmoData);            
+            // console.log(amoEmailSet);
+            // console.log(amoPhoneSet);
+            let foundContact=false;
+          for( let contact of filterDoliData){
+            
+            // if(contact.email){
+            //     if(amoEmailSet.has(contact.email)){
+            //       foundContact=true;
+            //     }
+            // }
+            // if(contact.phone){
+            //   if(amoPhoneSet.has(convertPhone(contact.phone))){
+            //     foundContact=true;
+            //   }
+            // }
+            foundContact=doliUserIsInAmo(amoEmailSet, amoPhoneSet, contact)
               if(!foundContact){
                   if(contact.email=='@')
                     contact.email='';
                   users.push(contact)
               }
+              
           }
-          callBack(users);
+          let usersWithOutDup=removeDoliDuplicate(users)
+          //console.log("Time to find new users: %dms",new Date() - start );
+          callBack(usersWithOutDup);
         })
   })
 }
