@@ -37,7 +37,7 @@ class AmoUsersRepository{
     }
     getByID(id){
         console.log("trying to fetch amo user id", id);
-        return this.dao.run('SELECT * FROM amousers WHERE id=?', [id]);
+        return this.dao.all('SELECT * FROM amousers WHERE id=?', [id]);
     }
     getAll() {
         return this.dao.all(`SELECT * FROM amousers`)
