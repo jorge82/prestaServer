@@ -50,10 +50,10 @@ function addContatToDoli(url, token, newUser){
     });
 }
 
-function editContactInDoli(url, token, user){
+function editContactInDoli(url, token, user, id){
 
     //console.log("Adding user:", user, "to doli");
-    const URL= 'http://'+url+'/api/index.php/thirdparties/'+user.id;
+    const URL= 'http://'+url+'/api/index.php/thirdparties/'+id;
 
     return axios.put(URL,
         {
@@ -71,8 +71,8 @@ function editContactInDoli(url, token, user){
         return response.data.id;
     })
     .catch(e=>{
-        console.log("Error adding link contact ",user.Id ,"to doli.",e);
-        throw new Error ("Error adding user to doli");
+        console.log("Error editing contact ",id ,"to doli.",e);
+        throw new Error ("Error edditing user to doli");
     });
 }
 
