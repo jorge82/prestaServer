@@ -109,5 +109,6 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(PORT, ()=>{
+    logger.info("Starting server in port " +PORT);
     console.log("Listening to port", PORT);
 })
