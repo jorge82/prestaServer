@@ -3,7 +3,7 @@ class AmoConectionRepository{
 
     constructor(dao){
         this.dao=dao;
-         //const sql= 'DROP TABLE IF EXISTS amoconections';
+        //  const sql= 'DROP TABLE IF EXISTS amoconections';
         // return this.dao.run(sql);
         this.createTable();
     }

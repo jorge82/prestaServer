@@ -27,10 +27,6 @@ const {updateAmoToken,  updateAmoContacts, exportAmoUsers, getAmoUsers , deleteA
   
     if((req.body.claveSecreta=="") || (req.body.url=="" )|| (req.body.code=="" )|| (req.body.id=="" )){
         console.log("Here")
-      // conectionRepo.getAll().then((rows)=>{
-      
-      //   res.render('amoconections', {conections:rows,  message: {type:'error', text:'Por favor complete todos los campos'}});
-      // })
        res.status(200).render('amoconections', {conections:[],message:{type:'error', text:'Faltan datos!'}});
     }else{
 

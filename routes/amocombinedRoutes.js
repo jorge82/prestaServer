@@ -2,38 +2,67 @@ const express = require("express");
 const routes = express.Router();
 
 const { auth, requiresAuth } = require("express-openid-connect");
-
 const {updateAmoToken, addNewAmoContact,deleteAmoContact, updateAmoContact, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, getNewToAmo,updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli, updateAmoLinkInDoli}=require('../model/DBupdater')
-
 const { convertDoliFormatToAmo} = require("../utils/utils")
 
+const logger = require('../utils/Logger');
 
-  let newContacts=[];
+
   routes.post('/contactsWebHook', (req, res, next)=>{
 
     //console.log("recinbing new contact from amo", req.body);
     try{
-      newContacts.push(req.body);
+      //newContacts.push(req.body);
       const data=req.body.contacts;
-      console.log("data received:", data)
+      logger.info("Webhook call, data received: " + JSON.stringify(data) );
+      //console.log("data received:", data)
       if(data.add){
-        addNewAmoContact(data.add[0]);
+        logger.info("Webhook call, adding: " + JSON.stringify(data.add[0]) );
+        addNewAmoContact(data.add[0],(err)=>{
+          if(err){
+            logger.error("Webhook call error: " + err );
+          }else{
+            logger.info("Webhook call, adding success");
+          }
+        });
       }
-      if(data.update){
-        updateAmoContact(data.update[0]);
+      else if(data.update){
+        logger.info("Webhook call, updating: " + JSON.stringify(data.update[0]) );
+        updateAmoContact(data.update[0],(err)=>{
+          if(err){
+            logger.error("Webhook call error: " + err );
+          }else{
+            logger.info("Webhook call, updating success");
+          }
+        });
       }
-      if(data.delete){
-        deleteAmoContact(data.delete[0]);
+      else if(data.delete){
+        logger.info("Webhook call, deleting: " + JSON.stringify(data.delete[0]) );
+        deleteAmoContact(data.delete[0],(err)=>{
+          if(err){
+            logger.error("Webhook call error: " + err );
+          }else{
+            logger.info("Webhook call, deleting success");
+          }
+        });
+      }else{
+        logger.warn("Webhook call not doing anything" );
       }
       res.status(200).end();
     }catch(e){
+        logger.error("Webhook call error: " + e );
         next(e);
     }
   });
-  routes.get('/contactsWebHook', (req, res, next)=>{
-
-   
-    res.status(200).send(newContacts);
+  routes.get('/contactsWebHook', requiresAuth() ,(req, res, next)=>{
+  
+    res.download('./logs/server.log', 'server.log', (err) => {
+      if (err) {
+        next(err);
+      } else {
+        res.status(200);
+      }
+    })
 
   })
 
@@ -52,22 +81,23 @@ const { convertDoliFormatToAmo} = require("../utils/utils")
   })
 
   routes.get('/combinedDoli', requiresAuth(),(req,res)=>{
-
+    logger.info("combinedDoli:trying to getting common users");
       getCommonDoliUsers((common)=>{
-        //console.log("new users ",common)
+        logger.info("combinedDoli:getting common users success");
         res.status(200);
         res.render('combinedDoli', {users:common});
       })  
     }
   )
    routes.get('/newToAmo', requiresAuth(),(req,res)=>{
-
+    logger.info("newToAmo:trying to getting new users to amo");
       getNewToAmo((newUsers)=>{
         //console.log("new users ",common)
         newUsers.map(user=>{
           
          convertDoliFormatToAmo(user);
         })
+        logger.info("newToAmo: getting new users to amo success");
         res.status(200);
         res.render('newToAmo', {users:newUsers});
       })  
@@ -77,7 +107,7 @@ const { convertDoliFormatToAmo} = require("../utils/utils")
   
 
   routes.get('/addNewUsersToAmo', requiresAuth(),  (req,res, next)=>{
-
+    logger.info("addNewUsersToAmo:trying to add new users to amo");
      updateAmoContacts(1,(error)=>{
         if(error){
                   next(error);
@@ -85,27 +115,19 @@ const { convertDoliFormatToAmo} = require("../utils/utils")
            getNewToAmo((newUsers)=>{
                 //console.log("new users ",common)
                 const amoUsers= newUsers.map(user=>convertDoliFormatToAmo(user));
-               
-              
                 //const amoSlice=amoUsers.slice(0,500);
                 const amoSlice=amoUsers;
                 addNewContactsToAmo(amoSlice, (error)=>{
                   if (error){
                     next(error); 
                   }else{
+                    logger.info("addNewUsersToAmo:success");
                     res.status(200);
                   }
                 });  
-            
         })
-      
-        // res.status(200);
-        // res.send(amoSlice);
-        //res.render('newToAmo', {users:newUsers});
       }
      })  
-     
-      console.log("RETURNEDDDDDDDDDDDDDDDDDDDDDDDDD!")
     })
 
 
@@ -113,12 +135,14 @@ const { convertDoliFormatToAmo} = require("../utils/utils")
 
 
   routes.get('/newUsers', requiresAuth(),(req,res)=>{
+    logger.info("newUsers: showing new users");
         getNewUsers((newusers)=>{      
           res.status(200);
           res.render('newUsers', {users:newusers});
         }) 
   })
    routes.get('/updateAll', requiresAuth(),(req,res,next)=>{
+    logger.info("updateAll: updating");
        updateDoliContacts((error)=>{
           if (error){
               next(error);
@@ -136,7 +160,7 @@ const { convertDoliFormatToAmo} = require("../utils/utils")
   })
 
   routes.get('/addnewUsersToDoli', requiresAuth(),(req,res,next)=>{
-    //console.log("adding!!!")
+    logger.info("addnewUsersToDoli: trying to update new user to doli");
     updateDoliContacts((error)=>{
       if (error){
           next(error);
@@ -145,11 +169,11 @@ const { convertDoliFormatToAmo} = require("../utils/utils")
                 if (error){
                   next(error);
                 }else{
-                    updateDoliContacts((error)=>{
+                  updateDoliContacts((error)=>{
                         if(error){
                           next(error);
                         }else{  
-                          //console.log("users correctry updated");
+                          logger.info("addnewUsersToDoli: success");
                           res.status(200);
                           res.redirect('/combined/newusers')}
                         });
@@ -193,7 +217,6 @@ const { convertDoliFormatToAmo} = require("../utils/utils")
     })
  
   })
-
 
 
 module.exports = routes;

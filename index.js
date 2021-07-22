@@ -8,7 +8,9 @@ const {updateAmoToken, addNewAmoContact,deleteAmoContact, updateAmoContact, expo
 const { auth, requiresAuth } = require("express-openid-connect");
 
 const api=require('./Api/ApiPresta');
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
+const logger = require('./utils/Logger');
+
 
 
 
@@ -102,6 +104,7 @@ app.use('/doli', doliroutes);
 app.use('/combined', combined);
 //Error handler
 app.use((error, req, res, next) => {
+  logger.error("Server error 500: " + error.toString() );
   return res.status(500).json({ ServerError: error.toString() });
 });
 
