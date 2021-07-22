@@ -474,7 +474,7 @@ module.exports.addNewAmoContact=function addNewAmoContact(contact, callback){
 module.exports.deleteAmoContact=function deleteAmoContact(contact, callback){
   console.log("trying to delete amo user id", contact.id)
   if(contact.id)
-      amoRepo.delete(contact.id).cath(e=>{  
+      amoRepo.delete(contact.id).catch(e=>{  
           callback(e);
       });
 }
