@@ -352,7 +352,7 @@ function updateDoliContacts(callback){
             })
               const dif=new Date()-start;
               logger.info("Finished to update doli contacts in ms: "+ dif.toString());
-              updateDoliUsersInRedis()
+              //updateDoliUsersInRedis()
               callback(null);
             
          }).catch((error)=>{

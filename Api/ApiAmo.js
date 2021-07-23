@@ -31,7 +31,7 @@ async function getContacts(url,accessToken, page){
 }
 async function getContacts2(url,accessToken, page){
 try{
-console.log("fetching page:", page)
+  //console.log("fetching page:", page)
   const response=await axios.get(url+'/api/v4/contacts?limit=250&page='+page, {
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -40,13 +40,13 @@ console.log("fetching page:", page)
       let data=[]
       if(response.data!=""){
         data= response.data._embedded.contacts
-        console.log("calling")
+        //console.log("calling")
       
           return data.concat( await getContacts2(url,accessToken, page+1));
          
         }else{
 
-          console.log("termino")
+          //console.log("termino")
           return data;        
          } 
       
