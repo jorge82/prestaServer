@@ -26,12 +26,12 @@ const {exportExcel, filterContactData} = require('../utils/utils');
 
 const {updateAmoToken, updatePrestaData, updateDoliContacts, updateAmoContacts, addNewContactsToDoli , getNewUsers,getCommonDoliUsers}=require('../model/DBupdater')
 
-const redis = require("redis");
-const client = redis.createClient();
+// const redis = require("redis");
+// const client = redis.createClient();
 
-client.on("error", function(error) {
-  console.error(error);
-});
+// client.on("error", function(error) {
+//   console.error(error);
+// });
 
 
 
@@ -206,14 +206,14 @@ routes.get("/", requiresAuth(),(req,res)=>{
   
   routes.get('/combined', requiresAuth(),(req,res)=>{
   
-  const combinedUsers='combined'
-    return client.get(combinedUsers,(err, combinedusers)=>{
+  // const combinedUsers='combined'
+  //   return client.get(combinedUsers,(err, combinedusers)=>{
     
-    if (combinedusers) {
-      console.log('fetching data from cache-----');
-      return res.render('combined', {users:JSON.parse(combinedusers)})
+  //   if (combinedusers) {
+  //     console.log('fetching data from cache-----');
+  //     return res.render('combined', {users:JSON.parse(combinedusers)})
        
-      }else{
+  //     }else{
     
   
     var prestaUsers=[];
@@ -282,15 +282,15 @@ routes.get("/", requiresAuth(),(req,res)=>{
       }
       return false;
     })
-    client.setex(combinedUsers, 3600, JSON.stringify(filtered2))
+    // client.setex(combinedUsers, 3600, JSON.stringify(filtered2))
   
       res.render('combined', {users:filtered2})
   
   
     })
   })
-  }
-  })
+  // }
+  // })
   })
   
 
@@ -300,7 +300,7 @@ routes.get("/", requiresAuth(),(req,res)=>{
 
   
   routes.get('/contacts', requiresAuth(),(req,res)=>{
-  
+  /*
     const userKey='contacts'
     return client.get(userKey,(err, data)=>{
     
@@ -308,7 +308,7 @@ routes.get("/", requiresAuth(),(req,res)=>{
       console.log('fetching data from cache-----');
       return  res.json({users:data});
        
-      }else{
+      }else{*/
   
     //const sql= 'SELECT * from users u INNER JOIN addresses a on u.id=a.id_customer';
     const sql= 'SELECT u.tag ,u.id, u.name, u.lastName, u.email, u.dateAdded, u.dateUpdated, a.phone, a.cellPhone, a.address, a.postCode,a.city,  GROUP_CONCAT(DISTINCT o.products) products , sum(o.total_paid) as total from users u INNER JOIN orders o on u.id=o.id_customer and u.tag=o.tag INNER JOIN addresses a on u.id=a.id_customer and u.tag=a.tag GROUP BY u.id,u.tag ORDER BY u.id,u.tag';
@@ -329,13 +329,13 @@ routes.get("/", requiresAuth(),(req,res)=>{
         return (a.id-b.id)
       })
       //console.log("data", data)
-      client.setex(userKey, 3600, JSON.stringify(data))
-      client.setex(userKey,3600, JSON.stringify(data))
+      // client.setex(userKey, 3600, JSON.stringify(data))
+      // client.setex(userKey,3600, JSON.stringify(data))
       res.json({users:data})
   
     })
-  }
-  })
+  // }
+  // })
   
   })
   

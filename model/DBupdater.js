@@ -28,12 +28,12 @@ const amoRepo= new AmoUsersRepository(dao);
 const doliRepo= new DoliUsersRepository(dao);
 
 
-const redis = require("redis");
-const client = redis.createClient();
+//const redis = require("redis");
+//const client = redis.createClient();
 
-client.on("error", function(error) {
-  console.error(error);
-});
+// client.on("error", function(error) {
+//   console.error(error);
+// });
 
 module.exports.updateAmoLinkInDoli = async function updateAmoLinkInDoli(callback){
 
@@ -406,7 +406,7 @@ async function addNewContactsToDoli(callback){
     })
 }
 
-
+/*
 function updateDoliUsersInRedis(){
     const KEY="doliusers";
     doliRepo.getAll().then(rows=>{
@@ -428,7 +428,7 @@ function updateAmoUsersInRedis(){
         console.log("Error updating redis cache:",e)
     })  
 }
-
+*/
 module.exports.addNewAmoContact=function addNewAmoContact(contact, callback){
   let allTags=[];
   const amoLink="https://jmbere.amocrm.com/contacts/detail/"+contact.id;
@@ -589,7 +589,7 @@ function updateAmoContacts(numberRetries, callback){
           })
             const dif=new Date() - start;
              logger.info("Time to update amo contacts in miliseconds: "+ dif.toString());
-             updateAmoUsersInRedis();
+             //updateAmoUsersInRedis();
              callback(null);
         })
         }).catch((error)=>{
@@ -611,7 +611,7 @@ function updateAmoContacts(numberRetries, callback){
         })
       }else{
         console.log("no contacts!!");
-        updateAmoUsersInRedis();
+        //updateAmoUsersInRedis();
         callback(null);
       }
     })
@@ -1033,7 +1033,7 @@ module.exports.updateAmoToken=updateAmoToken;
 module.exports.updatePrestaData=updatePrestaData;
 module.exports.updateDoliContacts=updateDoliContacts;
 module.exports.updateAmoContacts=updateAmoContacts;
-module.exports.updateDoliUsersInRedis=updateDoliUsersInRedis;
+//module.exports.updateDoliUsersInRedis=updateDoliUsersInRedis;
 module.exports.addNewContactsToDoli=addNewContactsToDoli;
 module.exports.getNewUsers=getNewUsers;
 module.exports.getCommonDoliUsers=getCommonDoliUsers;
