@@ -98,7 +98,7 @@ setInterval(updateAmoToken, INTERVALODEACTUALIZACIONTOKEN);
 //Para que Heroku no apague el servidor
 var http = require("http");
 setInterval(function() {
-    http.get("https://jorgeserver.herokuapp.com");
+    http.get("http://jorgeserver.herokuapp.com");
     //http.get("http://localhost:3000");
     logger.info("Pinging the server");
 }, 600000); // every 10 minutes (600000)
