@@ -1,0 +1,21 @@
+info: Jul-23-2021 10:44:22: 	Starting server in port 3000
+info: Jul-23-2021 10:50:03: 	Webhook call, data received: undefined
+error: Jul-23-2021 10:50:03: 	Webhook call error: TypeError: Cannot read property 'add' of undefined
+error: Jul-23-2021 10:50:03: 	Server error 500: TypeError: Cannot read property 'add' of undefined
+info: Jul-23-2021 10:54:22: 	Pinging the server
+info: Jul-23-2021 10:57:06: 	Webhook call, data received: undefined
+error: Jul-23-2021 10:57:06: 	Webhook call error: TypeError: Cannot read property 'add' of undefined
+error: Jul-23-2021 10:57:06: 	Server error 500: TypeError: Cannot read property 'add' of undefined
+info: Jul-23-2021 10:59:15: 	Webhook call, data received: {"update":[{"id":"6814264","name":"5492994560683","responsible_user_id":"6560570","date_create":"1627046698","last_modified":"1627046698","custom_fields":[{"id":"243912","name":"Teléfono","values":[{"value":"+5492994560683","enum":"335376"}],"code":"PHONE"}],"linked_leads_id":{"4607852":{"ID":"4607852"}},"created_at":"1627046698","updated_at":"1627046698","type":"contact"}]}
+info: Jul-23-2021 10:59:15: 	Webhook call, updating: {"id":"6814264","name":"5492994560683","responsible_user_id":"6560570","date_create":"1627046698","last_modified":"1627046698","custom_fields":[{"id":"243912","name":"Teléfono","values":[{"value":"+5492994560683","enum":"335376"}],"code":"PHONE"}],"linked_leads_id":{"4607852":{"ID":"4607852"}},"created_at":"1627046698","updated_at":"1627046698","type":"contact"}
+info: Jul-23-2021 11:02:40: 	Webhook call, data received: {"update":[{"id":"6814264","name":"5492994560683","responsible_user_id":"6560570","date_create":"1627046698","last_modified":"1627046698","custom_fields":[{"id":"243912","name":"Teléfono","values":[{"value":"+5492994560683","enum":"335376"}],"code":"PHONE"}],"linked_leads_id":{"4607852":{"ID":"4607852"}},"created_at":"1627046698","updated_at":"1627046698","type":"contact"}]}
+info: Jul-23-2021 11:02:40: 	Webhook call, updating: {"id":"6814264","name":"5492994560683","responsible_user_id":"6560570","date_create":"1627046698","last_modified":"1627046698","custom_fields":[{"id":"243912","name":"Teléfono","values":[{"value":"+5492994560683","enum":"335376"}],"code":"PHONE"}],"linked_leads_id":{"4607852":{"ID":"4607852"}},"created_at":"1627046698","updated_at":"1627046698","type":"contact"}
+info: Jul-23-2021 11:03:11: 	Starting server in port 3000
+info: Jul-23-2021 11:03:21: 	Webhook call, data received: {"update":[{"id":"6814264","name":"5492994560683","responsible_user_id":"6560570","date_create":"1627046698","last_modified":"1627046698","custom_fields":[{"id":"243912","name":"Teléfono","values":[{"value":"+5492994560683","enum":"335376"}],"code":"PHONE"}],"linked_leads_id":{"4607852":{"ID":"4607852"}},"created_at":"1627046698","updated_at":"1627046698","type":"contact"}]}
+info: Jul-23-2021 11:03:21: 	Webhook call, updating: {"id":"6814264","name":"5492994560683","responsible_user_id":"6560570","date_create":"1627046698","last_modified":"1627046698","custom_fields":[{"id":"243912","name":"Teléfono","values":[{"value":"+5492994560683","enum":"335376"}],"code":"PHONE"}],"linked_leads_id":{"4607852":{"ID":"4607852"}},"created_at":"1627046698","updated_at":"1627046698","type":"contact"}
+info: Jul-23-2021 11:04:52: 	Starting server in port 3000
+info: Jul-23-2021 11:05:04: 	Starting server in port 3000
+info: Jul-23-2021 11:05:08: 	Webhook call, data received: {"update":[{"id":"6814264","name":"5492994560683","responsible_user_id":"6560570","date_create":"1627046698","last_modified":"1627046698","custom_fields":[{"id":"243912","name":"Teléfono","values":[{"value":"+5492994560683","enum":"335376"}],"code":"PHONE"}],"linked_leads_id":{"4607852":{"ID":"4607852"}},"created_at":"1627046698","updated_at":"1627046698","type":"contact"}]}
+info: Jul-23-2021 11:05:08: 	Webhook call, updating: {"id":"6814264","name":"5492994560683","responsible_user_id":"6560570","date_create":"1627046698","last_modified":"1627046698","custom_fields":[{"id":"243912","name":"Teléfono","values":[{"value":"+5492994560683","enum":"335376"}],"code":"PHONE"}],"linked_leads_id":{"4607852":{"ID":"4607852"}},"created_at":"1627046698","updated_at":"1627046698","type":"contact"}
+info: Jul-23-2021 11:05:10: 	Webhook call, updating success
+info: Jul-23-2021 11:07:48: 	Starting server in port 3000

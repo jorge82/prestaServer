@@ -540,6 +540,23 @@ module.exports.updateAmoContact=function updateAmoContact(contact,callback){
           })
 
           }
+        }else{
+          console.log("user not found to update");
+          addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
+            try{
+                contactInfo["DoliID"]=doliUserId;
+                const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
+                doliRepo.insert(newDoliUSer).catch(e=>{
+                  callback(e);
+                });
+                amoRepo.insert(contactInfo).catch(e=>{
+                  callback(e);
+                });
+                callback(null);
+            }catch(e){
+                callback(e);
+            }
+        })
         }
       })
   }catch(e){
