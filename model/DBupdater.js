@@ -505,9 +505,9 @@ module.exports.addNewAmoContact=function addNewAmoContact(contact, callback){
       })
 
       })
-      .catch(e=>{
+      .catch(e=>{ 
       callback(e);
-    });
+      });
      
     //sino no actualizo el contacto en doli , especialmente el link
     }else{
@@ -592,20 +592,41 @@ async function addNewContactFromAmoToDoli(contactInfo, callback){
         }
         //sino lo agrego
       }else{
-        addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
-          try{
-              contactInfo["DoliID"]=doliUserId;
-              const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
-              doliRepo.insert(newDoliUSer).catch(e=>{
+        amoRepo.insert(contactInfo).then(()=>{
+          addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
+            try{
+                contactInfo["DoliID"]=doliUserId;
+                const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
+                doliRepo.insert(newDoliUSer).catch(e=>{
+                  callback(e);
+                });
+                amoRepo.update(contactInfo).catch(e=>callback(e));
+                
+                callback(null);
+            }catch(e){
                 callback(e);
-              });
-              amoRepo.insert(contactInfo).catch(e=>{
-                callback(e);
-              });
-          }catch(e){
-                callback(e);
-          }
-      })
+            }
+        })
+  
+        })
+        .catch(e=>{ 
+        callback(e);
+        });
+
+      //   addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
+      //     try{
+      //         contactInfo["DoliID"]=doliUserId;
+      //         const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
+      //         doliRepo.insert(newDoliUSer).catch(e=>{
+      //           callback(e);
+      //         });
+      //         amoRepo.insert(contactInfo).catch(e=>{
+      //           callback(e);
+      //         });
+      //     }catch(e){
+      //           callback(e);
+      //     }
+      // })
 
       }
     }else{
