@@ -511,12 +511,15 @@ module.exports.addNewAmoContact=function addNewAmoContact(contact, callback){
      
     //sino no actualizo el contacto en doli , especialmente el link
     }else{
+      const user= users[0];
+      if(user.DoliID){
       editContactInDoli(URLDoli, TOKENDoli,contactInfo, user.DoliID).then((doliUserId)=>{
         const doliUSer={id:user.DoliID , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
         doliRepo.update(doliUSer);
         callback(null);
     })
-      callback("User already exists")
+    }
+      
     }
   })
 
