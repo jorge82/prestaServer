@@ -104,12 +104,13 @@ async function refreshAccessToken(url, id_integracion, clave_secreta, refreshTok
 async function addContactsToAmo(url, accessToken, users){
     //console.log("Adding users:", users, "to amor");
 
-    axios.post(url+'/api/v4/contacts', users
+    return axios.post(url+'/api/v4/contacts', users
        , {headers: {
           'Authorization': `Bearer ${accessToken}`
         }})
 
     .then(response=>{
+       //console.log("resouesta", response.data);
        return response.data;
     })
     .catch(e=>{

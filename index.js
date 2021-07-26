@@ -3,7 +3,7 @@ var compression = require('compression')
 
 
 const {updateAmoToken, addNewAmoContact,deleteAmoContact, updateAmoContact, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, getNewToAmo,updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli}=require('./model/DBupdater')
-
+const { convertDoliFormatToAmo} = require("./utils/utils")
 
 const { auth, requiresAuth } = require("express-openid-connect");
 
@@ -51,50 +51,45 @@ app.use(auth(config));
 
 
 
-/* Intervalo de actualizacion cada una hora */
-const INTERVALODEACTUALIZACION=3600000;
-//setInterval(updatePrestaData, INTERVALODEACTUALIZACION);
-//Actualizo los los contactos de amo
-/*
-setInterval(()=>{updateAmoContacts(1,(error)=>{
-        if(error){
-                  console.log(error);
-        }else{
-               getNewToAmo((newUsers)=>{
-                //console.log("new users ",common)
-                const amoUsers= newUsers.map(user=>convertDoliFormatToAmo(user));
-              
-                //const amoSlice=amoUsers.slice(0,500);
-               
-                addNewContactsToAmo(amoUsers, (error)=>{
-                  if (error){
-                    console.log(error);
-                  }
-                });   
-        });
-      }
- }) } , INTERVALODEACTUALIZACION);
 
-//a los 10 minutos actualizo los contactos de amo
-setInterval( ()=>{
-  updateDoliContacts((error)=>{
-      if (error){
-          console.log(error);
-      }else{
-            addNewContactsToDoli((error)=>{
-                if (error){
-                  console.log(error);
-                }
-            });
-      }  
-    })
-  }, INTERVALODEACTUALIZACION + 60000);
-
-*/
-/* Intervalo de actualiacion del token cada 8 horas y media */
 const INTERVALODEACTUALIZACIONTOKEN=30600000;
-setInterval(updateAmoToken, INTERVALODEACTUALIZACIONTOKEN);
+setInterval(()=>{updateAmoToken((error)=>{
+  if(!error){
+    logger.info("Amo token successfully updated");
+  }
+})}, INTERVALODEACTUALIZACIONTOKEN);
+const INTERVALODEACTUALIZACIONDOLICONTACTS=600000; //cada 10 minutos
+setInterval(()=>updateDoliContacts((error)=>{
+  if(!error){
+    logger.info("Doli contacts successfully updated");
+  }
+}),[INTERVALODEACTUALIZACIONDOLICONTACTS]);
 
+
+const INTERVALODEACTUALIZACIONDOLITOAMO=INTERVALODEACTUALIZACIONDOLICONTACTS + 120000; //cada 12 minutos
+setInterval(()=>{ 
+  logger.info("Trying to add new users to Amo from doli");
+  
+      getNewToAmo((newUsers)=>{ 
+
+        if(newUsers.length>0){
+          const amoUsers= newUsers.map(user=>convertDoliFormatToAmo(user));
+        
+          addNewContactsToAmo(amoUsers, newUsers, (error)=>{
+            if (error){
+              logger.error("ERROR Adding new users to Amo from doli");
+            }else{
+              logger.info("Success adding new users to Amo from doli");
+              res.status(200);
+            }
+          });
+        }else{
+          logger.info("Success adding new users to Amo from doli, no new users to add");
+        }
+      });
+  
+},[INTERVALODEACTUALIZACIONDOLITOAMO])
+/*
 //Para que Heroku no apague el servidor
 var http = require("http");
 setInterval(function() {
@@ -102,7 +97,7 @@ setInterval(function() {
     //http.get("http://localhost:3000");
     logger.info("Pinging the server");
 }, 600000); // every 10 minutes (600000)
-
+*/
 //  Connect all our routes to our application
 app.use('/', routes);
 app.use('/amo', amoroutes);

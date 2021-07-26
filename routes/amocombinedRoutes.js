@@ -175,7 +175,8 @@ const logger = require('../utils/Logger');
                         }else{  
                           logger.info("addnewUsersToDoli: success");
                           res.status(200);
-                          res.redirect('/combined/newusers')}
+                          //res.redirect('/combined/newusers')
+                          }
                         });
                 }
              });

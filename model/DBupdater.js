@@ -41,7 +41,7 @@ module.exports.updateAmoLinkInDoli = async function updateAmoLinkInDoli(callback
   const TOKENDoli="fp8x6y95";
 
 
-  console.log("New doli contacts to fetch!!")
+  //console.log("New doli contacts to fetch!!")
 
   getCommonDoliUsers(async (users)=>{
     //doliUsers=users.slice(5000,5210);
@@ -291,27 +291,59 @@ async function updateAmoToken(callback){
       callback(error);
     }
 }
-
-module.exports.addNewContactsToAmo=async function addNewContactsToAmo(users,callback){
+function addContactsToAmoDB(data,doliUsers){
+  const ids= data._embedded.contacts.map(value=>value.id);
+  let amoUsers= doliUsers.map((user,index)=>{
+          let amoUser={};
+          amoUser.id=ids[index];
+          amoUser.name=user.name;
+          amoUser.first_name=user.firstName;
+          amoUser.last_name=user.lastName;
+          amoUser.Email=user.email;
+          amoUser.Phone=user.phone;
+          amoUser.Tag="DOli";
+          amoUser.Link="https://jmbere.amocrm.com/contacts/detail/"+ids[index];
+          amoUser.DoliID=user.id;
+          return amoUser;
+  })
+  for(let contact of amoUsers){
+    console.log("inserting contact to amoDB", contact);
+    amoRepo.insert(contact);
+  }
+  return;
+}
+module.exports.addNewContactsToAmo=async function addNewContactsToAmo(users,doliUsers, callback){
 
     try{
+
       const rows= await amoconectionRepo.getAll();
       if (rows.length>0){
           try{
             data=rows[0];
             if(users.length<=250){
-              console.log("Addinng last elemenets to amo");
-              const response= await addContactsToAmo(data.url, data.accessToken, users);
-              callback(null);
+              console.log("Addinng last elements to amo");
+              addContactsToAmo(data.url, data.accessToken, users).then((data)=>{
+                //console.log("console.log doliusers", doliUsers);
+                //console.log("data", data);
+                  addContactsToAmoDB(data,doliUsers);
+                  callback(null); 
+              }).catch(e=>{
+                  callback(e);
+              })
+            
             }else{
-              console.log("Addinng 250 elemenets to amo");
+              console.log("Addinng 250 elements to amo");
               const userSlice= users.slice(0,250);
-              const response= await addContactsToAmo(data.url, data.accessToken, userSlice);
-              users.splice(0, 250)
-              addNewContactsToAmo(users,callback);
-            }
-
-           
+              const doliUserSlice= doliUsers.slice(0,250);
+              addContactsToAmo(data.url, data.accessToken, userSlice).then(data=>{
+                  addContactsToAmoDB(data,doliUserSlice);
+                  users.splice(0, 250)
+                  doliUsers.splice(0,250);
+                  addNewContactsToAmo(users,doliUsers, callback);
+              }).catch(e=>{
+                  callback(e);
+              })
+            } 
           }catch(error){
             callback(error);
           }
@@ -330,14 +362,14 @@ function updateDoliContacts(callback){
     const TOKENDoli="fp8x6y95";
     const TAGDoli="Doli"
 
-    console.log("Fetching doli contacts!!")
+    //console.log("Fetching doli contacts!!")
   try{
     doliRepo.getAll().then(rows=>{
         datos_actuales=rows;
         
         getContactsFromDoli(URLDoli, TOKENDoli, TAGDoli).then((data)=>{
        
-            console.log("In total there are :",data.length, " contacts")
+            //console.log("In total there are :",data.length, " contacts")
         
             data.map((contact, index)=>{
         
@@ -345,7 +377,7 @@ function updateDoliContacts(callback){
         
                 let found= datos_actuales.some(el=> el.id==contactInfo.id)
                     if(!found){
-                    //console.log("pushing:", contactInfo)
+                     console.log("pushing:", contactInfo)
                         doliRepo.insert(contactInfo);
                     }
      
@@ -365,6 +397,8 @@ function updateDoliContacts(callback){
 }
 
 async function addNewContactsToDoli(callback){
+  logger.info("Started to add new contacts to doli");
+  var start = new Date()
 
     const URLDoli='dbarg.doli.ar/htdocs';
     const TOKENDoli="fp8x6y95";
@@ -395,11 +429,12 @@ async function addNewContactsToDoli(callback){
                     console.log("Adding users bach", i-userBatch,"-",i-1 );
                     initialValue=i;
                     if(i>=usersToAdd-1){
-                      console.log("Finished adding users");
+                      const dif=new Date()-start;
+                      logger.info("Finished to add new contacts to doli in ms: "+ dif.toString());;
                       callback(null);
                     }
             }catch (e) {
-                  callback(error);
+                  callback(e);
               }
       }
      
@@ -450,29 +485,43 @@ module.exports.addNewAmoContact=function addNewAmoContact(contact, callback){
           })
           
     }
-
-  addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
-      try{
-          contactInfo["DoliID"]=doliUserId;
-          const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
-          doliRepo.insert(newDoliUSer).catch(e=>{
+  amoRepo.getByID(contact.id).then(users=>{
+    //si ese id no esta , lo agrego
+    if(users.length!=0){
+      addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
+        try{
+            contactInfo["DoliID"]=doliUserId;
+            const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
+            doliRepo.insert(newDoliUSer).catch(e=>{
+              callback(e);
+            });
+            amoRepo.insert(contactInfo).catch(e=>{
+              callback(e);
+            });
+            callback(null);
+        }catch(e){
             callback(e);
-          });
-          amoRepo.insert(contactInfo).catch(e=>{
-            callback(e);
-          });
-          callback(null);
-      }catch(e){
-          callback(e);
-      }
+        }
+    })
+    //sino no actualizo el contacto en doli , especialmente el link
+    }else{
+      editContactInDoli(URLDoli, TOKENDoli,contactInfo, user.DoliID).then((doliUserId)=>{
+        const doliUSer={id:user.DoliID , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
+        doliRepo.update(doliUSer);
+        callback(null);
+    })
+      callback("User already exists")
+    }
   })
+
+ 
 }catch(e){
     callback(new Error(e));
 }
 
 }
 module.exports.deleteAmoContact=function deleteAmoContact(contact, callback){
-  console.log("trying to delete amo user id", contact.id)
+  //console.log("trying to delete amo user id", contact.id)
   if(contact.id)
       amoRepo.delete(contact.id).catch(e=>{  
           callback(e);
@@ -481,8 +530,7 @@ module.exports.deleteAmoContact=function deleteAmoContact(contact, callback){
 module.exports.updateAmoContact=function updateAmoContact(contact,callback){
   try{
       const amoLink="https://jmbere.amocrm.com/contacts/detail/"+contact.id;
-      const URLDoli='dbarg.doli.ar/htdocs';
-      const TOKENDoli="fp8x6y95";
+    
       let allTags=[];
       if(contact.tags){
         for(let tag of contact.tags){
@@ -490,7 +538,7 @@ module.exports.updateAmoContact=function updateAmoContact(contact,callback){
         } 
       }
       let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join(), Link:amoLink }
-
+      
       if(contact.custom_fields){
           contact.custom_fields.map(custom=>{
               if (custom.id==243912){//243912 es el id de Phone)
@@ -502,66 +550,77 @@ module.exports.updateAmoContact=function updateAmoContact(contact,callback){
                 
           })
       }
-      console.log("amo user to update", contactInfo);
-      amoRepo.update(contactInfo);
-      //console.log("id", contactInfo.id);
-      const ID= parseInt(contactInfo.id, 10);
-      //console.log("converted id", ID);
-      amoRepo.getByID(ID).then(amoUsers=>{
-        console.log("amouser fetched by id", amoUsers);
-
-        /* si se enceuntra el usuario */
-        if(amoUsers.length>0){
-          const user= amoUsers[0];
-          if(user.DoliID>0){
-            try{
-              editContactInDoli(URLDoli, TOKENDoli,contactInfo, user.DoliID).then((doliUserId)=>{
-                const doliUSer={id:user.DoliID , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
-                doliRepo.update(doliUSer);
-            })
-            }catch(e){
-                console.log("Error:", e);
-                  //throw new Error(e);
-            }
-          }else{
-            addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
-              try{
-                  contactInfo["DoliID"]=doliUserId;
-                  const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
-                  doliRepo.insert(newDoliUSer).catch(e=>{
-                    callback(e);
-                  });
-                  amoRepo.insert(contactInfo).catch(e=>{
-                    callback(e);
-                  });
-              }catch(e){
-                    callback(e);
-              }
-          })
-
-          }
-        }else{
-          console.log("user not found to update");
-          addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
-            try{
-                contactInfo["DoliID"]=doliUserId;
-                const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
-                doliRepo.insert(newDoliUSer).catch(e=>{
-                  callback(e);
-                });
-                amoRepo.insert(contactInfo).catch(e=>{
-                  callback(e);
-                });
-                callback(null);
-            }catch(e){
-                callback(e);
-            }
-        })
-        }
-      })
+      if (!amoContactIsValid(contactInfo)){
+          callback("Contact not valid");
+      }else{
+          addNewContactFromAmoToDoli(contactInfo, callback);
+      }
+     
   }catch(e){
       callback(e);
   }
+}
+
+async function addNewContactFromAmoToDoli(contactInfo, callback){
+  const URLDoli='dbarg.doli.ar/htdocs';
+  const TOKENDoli="fp8x6y95";
+  const ID= parseInt(contactInfo.id, 10);
+    
+  amoRepo.getByID(ID).then(amoUsers=>{
+    console.log("amouser fetched by id", amoUsers);
+
+    /* si se enceuntra el usuario lo actualizo */
+    if(amoUsers.length>0){
+      const user= amoUsers[0];
+      if(user.DoliID>0){
+        try{
+          amoRepo.update(contactInfo);
+          editContactInDoli(URLDoli, TOKENDoli,contactInfo, user.DoliID).then((doliUserId)=>{
+            const doliUSer={id:user.DoliID , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
+            doliRepo.update(doliUSer);
+        })
+            callback(null);
+        }catch(e){
+            console.log("Error:", e);
+              //throw new Error(e);
+        }
+        //sino lo agrego
+      }else{
+        addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
+          try{
+              contactInfo["DoliID"]=doliUserId;
+              const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
+              doliRepo.insert(newDoliUSer).catch(e=>{
+                callback(e);
+              });
+              amoRepo.insert(contactInfo).catch(e=>{
+                callback(e);
+              });
+          }catch(e){
+                callback(e);
+          }
+      })
+
+      }
+    }else{
+      console.log("user not found to update");
+      addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
+        try{
+            contactInfo["DoliID"]=doliUserId;
+            const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
+            doliRepo.insert(newDoliUSer).catch(e=>{
+              callback(e);
+            });
+            amoRepo.insert(contactInfo).catch(e=>{
+              callback(e);
+            });
+            callback(null);
+        }catch(e){
+            callback(e);
+        }
+    })
+    }
+  })
 }
 
 
@@ -711,15 +770,15 @@ function amoContactIsValid(contact){
       //console.log("not email and not phone")
       return false;
   
-    }else if (contact.name.includes("Llamada") || contact.name.includes("prueba") || contact.name.includes('atencion amo') || contact.name.includes('Google')){
+    }else if (contact.name.includes("Llamada") ||contact.name.length<2 || contact.name.includes("prueba") || contact.name.includes('atencion amo') || (contact.name.includes('PROGRAMA DE'))|| contact.name.includes('Google')){
       //console.log("filtrado por llamadas")
       return false;
     }else if( contact.Email){
       let emailEnding=contact.Email.split('@')[1];
       if(contact.Email.includes('noreply')){
         return false;
-      }else if  ((contact.Email=='uber@uber.com') || (emailEnding=="rackear.com.ar") ||(emailEnding=="blocket.com.ar") || (emailEnding=="db-arg.com") || (emailEnding=="musitec.com.ar") || (emailEnding=="dbdrums.com.ar")) {
-            return false;
+      }else if  ((contact.Email=='uber@uber.com') || (emailEnding=="rackear.com.ar") ||(emailEnding=="blocket.com.ar") ||(emailEnding=="sendinblue.com") || (emailEnding=="db-arg.com") || (emailEnding=="musitec.com.ar") || (emailEnding=="dbdrums.com.ar")) {
+            return false; 
         }else{
             return true;
         }
@@ -789,7 +848,7 @@ function generateDoliPhoneSet(doliusers){
   return usersSet;
 }
 function convertPhone(phone){
-    var phoneString=phone.replace(/[- +]/g,'')
+    var phoneString=phone.replace(/[- + .]/g,'')
     var lastSix = phoneString.substr(phoneString.length - 6);
     return lastSix;
 }
@@ -854,6 +913,8 @@ async function getNewUsers(callBack){
   
               foundContact=amoUserIsInDoli(doliEmailSet, doliPhoneSet, contact);
               if(!foundContact){
+                console.log("contact phone is:",contact.Phone,"converted is:",convertPhone(contact.Phone));
+                console.log("doli  phone is:",convertPhone('37853092'))
                   newUsers.push(contact)
               }
              
@@ -914,17 +975,17 @@ async function getCommonDoliUsers(callBack){
 
 function filterDoliContacts(contact){
 
-  if(!contact.email && !contact.phone || (!isNaN(contact.name) || (contact.email=="jmbere@gmail.com") || (contact.email=="@"))){
+  if(!contact.email && !contact.phone || (!isNaN(contact.name) || (contact.name.length<2) || (contact.email=="jmbere@gmail.com") || (contact.email=="@"))){
     //console.log("not email and not phone")
     return false;
-  }else if (contact.name.includes("Llamada") || contact.name.includes("prueba") || contact.name.includes('atencion amo') || contact.name.includes('Google')){
+  }else if (contact.name.includes("Llamada") || contact.name.includes("prueba") || contact.name.includes('atencion amo') || contact.name.includes('PROGRAMA') || contact.name.includes('Google')){
     //console.log("filtrado por llamadas")
     return false;
   }else if( contact.email){
     let emailEnding=contact.email.split('@')[1];
     if(contact.email.includes('noreply')){
       return false;
-    }else if  ((contact.email=='uber@uber.com') || (emailEnding=="rackear.com.ar") ||(emailEnding=="blocket.com.ar") || (emailEnding=="db-arg.com") || (emailEnding=="musitec.com.ar") || (emailEnding=="dbdrums.com.ar")) {
+    }else if  ((contact.email=='uber@uber.com') || (emailEnding=="rackear.com.ar") || (emailEnding=="sendinblue.com") ||(emailEnding=="blocket.com.ar") || (emailEnding=="db-arg.com") || (emailEnding=="musitec.com.ar") || (emailEnding=="dbdrums.com.ar")) {
           return false;
       }else{
           return true;
