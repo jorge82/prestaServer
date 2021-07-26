@@ -377,8 +377,8 @@ function updateDoliContacts(callback){
         
                 let found= datos_actuales.some(el=> el.id==contactInfo.id)
                     if(!found){
-                     console.log("pushing:", contactInfo)
-                        doliRepo.insert(contactInfo);
+                     //console.log("pushing:", contactInfo)
+                      doliRepo.insert(contactInfo);
                     }
      
             })
@@ -488,21 +488,27 @@ module.exports.addNewAmoContact=function addNewAmoContact(contact, callback){
   amoRepo.getByID(contact.id).then(users=>{
     //si ese id no esta , lo agrego
     if(users.length!=0){
-      addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
-        try{
-            contactInfo["DoliID"]=doliUserId;
-            const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
-            doliRepo.insert(newDoliUSer).catch(e=>{
+      amoRepo.insert(contactInfo).then(()=>{
+        addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
+          try{
+              contactInfo["DoliID"]=doliUserId;
+              const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
+              doliRepo.insert(newDoliUSer).catch(e=>{
+                callback(e);
+              });
+              amoRepo.update(contactInfo).catch(e=>callback(e));
+              
+              callback(null);
+          }catch(e){
               callback(e);
-            });
-            amoRepo.insert(contactInfo).catch(e=>{
-              callback(e);
-            });
-            callback(null);
-        }catch(e){
-            callback(e);
-        }
-    })
+          }
+      })
+
+      })
+      .catch(e=>{
+      callback(e);
+    });
+     
     //sino no actualizo el contacto en doli , especialmente el link
     }else{
       editContactInDoli(URLDoli, TOKENDoli,contactInfo, user.DoliID).then((doliUserId)=>{
