@@ -64,7 +64,7 @@ setInterval(()=>updateDoliContacts((error)=>{
     logger.info("Doli contacts successfully updated");
   }
 }),[INTERVALODEACTUALIZACIONDOLICONTACTS]);
-
+/*
 
 const INTERVALODEACTUALIZACIONDOLITOAMO=INTERVALODEACTUALIZACIONDOLICONTACTS + 120000; //cada 12 minutos
 setInterval(()=>{ 
@@ -89,7 +89,8 @@ setInterval(()=>{
       });
   
 },[INTERVALODEACTUALIZACIONDOLITOAMO])
-/*
+*/
+
 //Para que Heroku no apague el servidor
 var http = require("http");
 setInterval(function() {
@@ -97,7 +98,7 @@ setInterval(function() {
     //http.get("http://localhost:3000");
     logger.info("Pinging the server");
 }, 600000); // every 10 minutes (600000)
-*/
+
 //  Connect all our routes to our application
 app.use('/', routes);
 app.use('/amo', amoroutes);

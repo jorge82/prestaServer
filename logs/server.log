@@ -4,3 +4,32 @@ info: Jul-26-2021 11:01:51: 	Starting server in port 3000
 info: Jul-26-2021 11:01:56: 	Starting server in port 3000
 info: Jul-26-2021 11:21:59: 	Starting server in port 3000
 info: Jul-26-2021 11:22:05: 	Starting server in port 3000
+info: Jul-28-2021 08:55:21: 	Starting server in port 3000
+info: Jul-28-2021 08:56:09: 	Starting server in port 3000
+info: Jul-28-2021 08:56:15: 	Starting server in port 3000
+info: Jul-28-2021 08:56:22: 	Starting server in port 3000
+info: Jul-28-2021 08:56:34: 	Starting server in port 3000
+info: Jul-28-2021 08:59:24: 	Starting server in port 3000
+info: Jul-28-2021 08:59:38: 	updateAmoToken: trying to update amo token
+error: Jul-28-2021 08:59:40: 	updateAmoToken: error updating amo token
+error: Jul-28-2021 08:59:40: 	Server error 500: Error: Error al actualizar el Refresh Token
+info: Jul-28-2021 09:01:04: 	Started to update amo contacts
+info: Jul-28-2021 09:01:17: 	Started to update doli contacts
+info: Jul-28-2021 09:02:46: 	Started to update doli contacts
+info: Jul-28-2021 09:02:47: 	Finished to update doli contacts in ms: 90124
+info: Jul-28-2021 09:06:07: 	Finished to update doli contacts in ms: 201245
+info: Jul-28-2021 09:06:25: 	Started to update amo contacts
+info: Jul-28-2021 09:09:24: 	Started to update doli contacts
+info: Jul-28-2021 09:09:24: 	Pinging the server
+info: Jul-28-2021 09:09:58: 	Started to update amo contacts
+info: Jul-28-2021 09:10:00: 	Time to update amo contacts in miliseconds: 536547
+info: Jul-28-2021 09:10:48: 	Starting server in port 3000
+info: Jul-28-2021 09:11:58: 	Started to update amo contacts
+info: Jul-28-2021 09:13:33: 	Started to update amo contacts
+info: Jul-28-2021 09:14:50: 	Time to update amo contacts in miliseconds: 171465
+info: Jul-28-2021 09:16:24: 	Time to update amo contacts in miliseconds: 171538
+info: Jul-28-2021 09:19:42: 	newToAmo:trying to getting new users to amo
+info: Jul-28-2021 09:19:42: 	Time to find new users to amo in miliseconds: 336
+info: Jul-28-2021 09:19:42: 	newToAmo: getting new users to amo success
+info: Jul-28-2021 09:19:44: 	newUsers: showing new users
+info: Jul-28-2021 09:19:44: 	Time to find new users to doli in miliseconds: 293
