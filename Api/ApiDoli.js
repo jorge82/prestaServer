@@ -20,7 +20,7 @@ function getContactsFromDoli(url, token){
 
 
 
-function addContatToDoli(url, token, newUser){
+function addContatToDoli(url, token, newUser, numberRetries){
 
     console.log("Adding user:", newUser, "to doli");
     const URL= 'http://'+url+'/api/index.php/thirdparties';
@@ -45,12 +45,20 @@ function addContatToDoli(url, token, newUser){
         return response.data;
     })
     .catch(e=>{
-        console.log("Error adding contact",newUser ,"to doli.", e);
-        throw new Error ("Error adding user to doli");
+        console.log("Error adding contact",newUser ,"to doli.");
+        if(numberRetries){
+            if(numberRetries<=0){
+                throw new Error ("Error adding user to doli");    
+            }else{
+                console.log("Retrying to insert contact to doli");
+                addContatToDoli(url, token, newUser, numberRetries-1);
+            }
+        }
+            
     });
 }
 
-function editContactInDoli(url, token, user, id){
+function editContactInDoli(url, token, user, id, numberRetries){
 
     
     const URL= 'http://'+url+'/api/index.php/thirdparties/'+id;
@@ -71,8 +79,16 @@ function editContactInDoli(url, token, user, id){
         return response.data.id;
     })
     .catch(e=>{
-        console.log("Error editing contact ",id ,"to doli.",e);
-        throw new Error ("Error edditing user to doli");
+        console.log("Error editing contact ",id ,"to doli.");
+        if(numberRetries){
+            if(numberRetries<=0){
+                throw new Error ("Error edditing user in doli");    
+            }else{
+                console.log("Retrying to insert contact to doli");
+                editContactInDoli(url, token, user, id, numberRetries-1);
+            }
+        }
+        
     });
 }
 

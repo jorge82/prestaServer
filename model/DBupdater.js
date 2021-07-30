@@ -35,6 +35,14 @@ const doliRepo= new DoliUsersRepository(dao);
 //   console.error(error);
 // });
 
+module.exports.updateDoliIDInAmoDB= async function updateDoliIDinAmoDB(){
+  getCommonDoliUsers(async (users)=>{
+    for (let user of users){
+      amoRepo.updateDoliID(user.AmoID, user.id);
+    }
+  });
+}
+
 module.exports.updateAmoLinkInDoli = async function updateAmoLinkInDoli(callback){
 
   const URLDoli='dbarg.doli.ar/htdocs';
@@ -471,7 +479,7 @@ module.exports.addNewAmoContact=function addNewAmoContact(contact, callback){
   const TOKENDoli="fp8x6y95";
 
   try{
-      let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join(), Link:amoLink, DoliId:0}
+      let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join(), Link:amoLink, DoliID:0}
 
       if(contact.custom_fields){
           contact.custom_fields.map(custom=>{
@@ -483,52 +491,18 @@ module.exports.addNewAmoContact=function addNewAmoContact(contact, callback){
               }
                 
           })
-          
+      }
+      if (!amoContactIsValid(contactInfo)){
+        callback("Contact not valid");
+      }else{
+        addNewContactFromAmoToDoli(contactInfo, callback);
     }
-  amoRepo.getByID(contact.id).then(users=>{
-    //si ese id no esta , lo agrego
-    if(users.length!=0){
-      amoRepo.insert(contactInfo).then(()=>{
-        addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
-          try{
-              contactInfo["DoliID"]=doliUserId;
-              const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
-              doliRepo.insert(newDoliUSer).catch(e=>{
-                callback(e);
-              });
-              amoRepo.update(contactInfo).catch(e=>callback(e));
-              
-              callback(null);
-          }catch(e){
-              callback(e);
-          }
-      })
-
-      })
-      .catch(e=>{ 
-      callback(e);
-      });
-     
-    //sino no actualizo el contacto en doli , especialmente el link
-    }else{
-      const user= users[0];
-      if(user.DoliID){
-      editContactInDoli(URLDoli, TOKENDoli,contactInfo, user.DoliID).then((doliUserId)=>{
-        const doliUSer={id:user.DoliID , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
-        doliRepo.update(doliUSer);
-        callback(null);
-    })
-    }
-      
-    }
-  })
-
- 
 }catch(e){
     callback(new Error(e));
 }
 
 }
+//Ver que pasa borrar id de doli
 module.exports.deleteAmoContact=function deleteAmoContact(contact, callback){
   //console.log("trying to delete amo user id", contact.id)
   if(contact.id)
@@ -581,49 +555,30 @@ async function addNewContactFromAmoToDoli(contactInfo, callback){
     /* si se enceuntra el usuario lo actualizo */
     if(amoUsers.length>0){
       const user= amoUsers[0];
-      if(user.DoliID>0){
-        try{
-          amoRepo.update(contactInfo);
-          editContactInDoli(URLDoli, TOKENDoli,contactInfo, user.DoliID).then((doliUserId)=>{
-            const doliUSer={id:user.DoliID , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
-            doliRepo.update(doliUSer);
-        })
-            callback(null);
-        }catch(e){
-            console.log("Error:", e);
-              //throw new Error(e);
-        }
-        //sino lo agrego
-      }
-      /*
-      else{
-        amoRepo.insert(contactInfo).then(()=>{
-          addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
-            try{
-                contactInfo["DoliID"]=doliUserId;
-                const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
-                doliRepo.insert(newDoliUSer).catch(e=>{
+        if(user.DoliID){
+            if(user.DoliID>0){
+              try{
+                amoRepo.update(contactInfo);
+                editContactInDoli(URLDoli, TOKENDoli,contactInfo, user.DoliID,3).then((doliUserId)=>{
+                  const doliUSer={id:user.DoliID , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
+                  doliRepo.update(doliUSer);
+                  callback(null);
+              }).catch(e=>{
                   callback(e);
-                });
-                amoRepo.update(contactInfo).catch(e=>callback(e));
-                
-                callback(null);
-            }catch(e){
-                callback(e);
-            }
-        })
-  
-        })
-        .catch(e=>{ 
-        callback(e);
-        });
-
-
-      }*/
+              })
+                  
+              }catch(e){
+                  callback(e);
+              }
+         }else{//sino no se encuentra el id del usario de doli
+            amoRepo.update(contactInfo);
+         }
+      }
+   
     }else{
       console.log("user not found to update");
       amoRepo.insert(contactInfo).then(()=>{
-        addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
+        addContatToDoli(URLDoli, TOKENDoli,contactInfo,3).then((doliUserId)=>{
           try{
               contactInfo["DoliID"]=doliUserId;
               const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
@@ -631,33 +586,18 @@ async function addNewContactFromAmoToDoli(contactInfo, callback){
                 callback(e);
               });
               amoRepo.update(contactInfo).catch(e=>callback(e));
-              
               callback(null);
           }catch(e){
               callback(e);
           }
+      }).catch(e=>{
+        callbacck(e);
       })
 
       })
       .catch(e=>{ 
       callback(e);
       });
-
-    //   addContatToDoli(URLDoli, TOKENDoli,contactInfo).then((doliUserId)=>{
-    //     try{
-    //         contactInfo["DoliID"]=doliUserId;
-    //         const newDoliUSer={id:doliUserId , name:contactInfo.name , firstName:contactInfo.first_name , lastName:contactInfo.last_name,  email:contactInfo.Email, phone:contactInfo.Phone, address:"", zip:"", city:"", country:""}
-    //         doliRepo.insert(newDoliUSer).catch(e=>{
-    //           callback(e);
-    //         });
-    //         amoRepo.insert(contactInfo).catch(e=>{
-    //           callback(e);
-    //         });
-    //         callback(null);
-    //     }catch(e){
-    //         callback(e);
-    //     }
-    // })
     }
   })
 }
@@ -981,7 +921,9 @@ async function getCommonDoliUsers(callBack){
           let amoEmailSet=generateAmoEmailSet(filteredAmoData);
           let amoPhoneSet= generateAmoPhoneSet(filteredAmoData); 
           let amoEmailDic=generateAmoEmailDictionary(filteredAmoData);  
-          let amoPhoneDic=generateAmoPhoneDictionary(filteredAmoData);          
+          let amoPhoneDic=generateAmoPhoneDictionary(filteredAmoData); 
+          let amoIDEmailSet= generateAmoIDEmailDictionary(filteredAmoData);
+          let amoIDPhoneSet= generateAmoIDPhoneDictionary(filteredAmoData);           
             //console.log(amoEmailDic);
             //console.log(amoPhoneDic);
             let foundContact=false;
@@ -995,9 +937,12 @@ async function getCommonDoliUsers(callBack){
                       
                   if(amoEmailDic[contact.email]){
                     contact.link= amoEmailDic[contact.email];
+                    contact.AmoID= amoIDEmailSet[contact.email];
                   }else{
                     //console.log("contatc", contact)
-                    contact.link= amoPhoneDic[convertPhone(contact.phone)];
+                    const convertedPhone=convertPhone(contact.phone);
+                    contact.link= amoPhoneDic[convertedPhone];
+                    contact.AmoID= amoIDPhoneSet[convertedPhone];
                   }    
                   users.push(contact)
               }
@@ -1051,6 +996,26 @@ function generateAmoEmailDictionary(amousers){
       } 
     }
     return emailDic;
+}
+function generateAmoIDEmailDictionary(amousers){
+  let emailDic= new Object();
+  for(let user of amousers){
+    if(user.Email){
+      emailDic[user.Email]=user.id;
+    } 
+  }
+  return emailDic;
+}
+function generateAmoIDPhoneDictionary(amousers){
+  let phoneDic= new Object();
+  for(let user of amousers){
+    if(user.Phone){
+      var phone=user.Phone.replace(/[- +]/g,'')
+      var lastSix = phone.substr(phone.length - 6);
+      phoneDic[lastSix]=user.id;
+      } 
+  }
+  return phoneDic;
 }
 function generateAmoPhoneDictionary(amousers){
   let phoneDic= new Object();
@@ -1107,13 +1072,13 @@ async function getNewToAmo(callBack){
           const filterDoliData=doliData.filter(filterDoliContacts);
        
           let amoEmailSet=generateAmoEmailSet(filteredAmoData);
-          let amoPhoneSet= generateAmoPhoneSet(filteredAmoData);            
+          let amoPhoneSet= generateAmoPhoneSet(filteredAmoData);    
+        
             // console.log(amoEmailSet);
             // console.log(amoPhoneSet);
             let foundContact=false;
           for( let contact of filterDoliData){
             
-        
             foundContact=doliUserIsInAmo(amoEmailSet, amoPhoneSet, contact)
               if(!foundContact){
                   if(contact.email=='@')

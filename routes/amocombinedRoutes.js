@@ -2,7 +2,7 @@ const express = require("express");
 const routes = express.Router();
 
 const { auth, requiresAuth } = require("express-openid-connect");
-const {updateAmoToken, addNewAmoContact,deleteAmoContact, updateAmoContact, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, getNewToAmo,updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli, updateAmoLinkInDoli}=require('../model/DBupdater')
+const {updateAmoToken, updateDoliIDInAmoDB, addNewAmoContact,deleteAmoContact, updateAmoContact, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, getNewToAmo,updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli, updateAmoLinkInDoli}=require('../model/DBupdater')
 const { convertDoliFormatToAmo} = require("../utils/utils")
 
 const logger = require('../utils/Logger');
@@ -87,6 +87,13 @@ const logger = require('../utils/Logger');
         res.status(200);
         res.render('combinedDoli', {users:common});
       })  
+    }
+  )
+  routes.get('/updateDoliIDs', requiresAuth(),(req,res)=>{
+    logger.info("combinedDoli:updating doli ids in amo db");
+    updateDoliIDInAmoDB();
+        res.status(200);
+
     }
   )
    routes.get('/newToAmo', requiresAuth(),(req,res)=>{

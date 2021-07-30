@@ -31,6 +31,11 @@ class AmoUsersRepository{
             
           )
     }
+    updateDoliID(id, doliID) {
+        return this.dao.run(
+            `UPDATE amousers  SET DoliID = ? WHERE  id = ?`,[doliID, id ]    
+          );
+    }
  
     delete(id){
         return this.dao.run('DELETE FROM amousers WHERE id=?', [id]);
