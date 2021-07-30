@@ -24,10 +24,10 @@ class AmoUsersRepository{
     }
     update(user) {
      
-        const {id , name , first_name , last_name,  Email, Phone,Tags } = user;
+        const {id , name , first_name , last_name,  Email, Phone,Tags} = user;
       
         return this.dao.run(
-            `UPDATE amousers  SET name = ? , first_name = ?, last_name = ?,  Email = ?, Phone= ? , Tags= ? WHERE  id = ?`,[name , first_name , last_name,  Email, Phone , Tags, id ]
+            `UPDATE amousers  SET name = ? , first_name = ?, last_name = ?,  Email = ?, Phone= ? , Tags= ? WHERE  id = ?`,[name , first_name , last_name,  Email, Phone , Tags,  id ]
             
           )
     }

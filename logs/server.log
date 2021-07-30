@@ -1,0 +1,10 @@
+info: Jul-30-2021 13:23:03: 	Starting server in port 3000
+info: Jul-30-2021 13:23:15: 	Started to update doli contacts
+info: Jul-30-2021 13:23:25: 	Finished to update doli contacts in ms: 10609
+info: Jul-30-2021 13:23:35: 	Started to update amo contacts
+info: Jul-30-2021 13:24:29: 	Time to update amo contacts in miliseconds: 53769
+info: Jul-30-2021 13:25:52: 	combinedDoli:trying to getting common users
+info: Jul-30-2021 13:25:52: 	Time to find common users in miliseconds: 325
+info: Jul-30-2021 13:25:52: 	combinedDoli:getting common users success
+info: Jul-30-2021 13:25:55: 	combinedDoli:updating doli ids in amo db
+info: Jul-30-2021 13:25:55: 	Time to find common users in miliseconds: 443

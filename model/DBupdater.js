@@ -479,7 +479,7 @@ module.exports.addNewAmoContact=function addNewAmoContact(contact, callback){
   const TOKENDoli="fp8x6y95";
 
   try{
-      let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join(), Link:amoLink, DoliID:0}
+      let contactInfo= {id:contact.id ,name: contact.name, Phone:'',  Email:'', first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join(), Link:amoLink, DoliID:0}
 
       if(contact.custom_fields){
           contact.custom_fields.map(custom=>{
@@ -520,7 +520,7 @@ module.exports.updateAmoContact=function updateAmoContact(contact,callback){
           allTags.push(tag.name);
         } 
       }
-      let contactInfo= {id:contact.id ,name: contact.name, first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join(), Link:amoLink }
+      let contactInfo= {id:contact.id ,name: contact.name, Phone:'',  Email:'', first_name:contact.first_name ||"" , last_name:contact.last_name ||"", Tags:allTags.join(), Link:amoLink }
       
       if(contact.custom_fields){
           contact.custom_fields.map(custom=>{
