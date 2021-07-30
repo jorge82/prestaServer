@@ -8,3 +8,17 @@ info: Jul-30-2021 13:25:52: 	Time to find common users in miliseconds: 325
 info: Jul-30-2021 13:25:52: 	combinedDoli:getting common users success
 info: Jul-30-2021 13:25:55: 	combinedDoli:updating doli ids in amo db
 info: Jul-30-2021 13:25:55: 	Time to find common users in miliseconds: 443
+info: Jul-30-2021 19:38:35: 	Starting server in port 3000
+info: Jul-30-2021 19:39:03: 	Started to update amo contacts
+info: Jul-30-2021 19:40:01: 	Time to update amo contacts in miliseconds: 57746
+info: Jul-30-2021 19:41:22: 	Started to update doli contacts
+info: Jul-30-2021 19:41:35: 	Finished to update doli contacts in ms: 13032
+info: Jul-30-2021 19:41:50: 	newToAmo:trying to getting new users to amo
+info: Jul-30-2021 19:41:50: 	Time to find new users to amo in miliseconds: 284
+info: Jul-30-2021 19:41:50: 	newToAmo: getting new users to amo success
+info: Jul-30-2021 19:41:52: 	newUsers: showing new users
+info: Jul-30-2021 19:41:52: 	Time to find new users to doli in miliseconds: 278
+info: Jul-30-2021 19:42:25: 	newToAmo:trying to getting new users to amo
+info: Jul-30-2021 19:42:26: 	Time to find new users to amo in miliseconds: 479
+info: Jul-30-2021 19:42:26: 	newToAmo: getting new users to amo success
+info: Jul-30-2021 19:43:37: 	Starting server in port 3000

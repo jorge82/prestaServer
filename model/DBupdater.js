@@ -585,6 +585,7 @@ async function addNewContactFromAmoToDoli(contactInfo, callback){
               doliRepo.insert(newDoliUSer).catch(e=>{
                 callback(e);
               });
+              amoRepo.updateDoliID(contactInfo.id, doliUserId).catch(e=>callback(e));
               amoRepo.update(contactInfo).catch(e=>callback(e));
               callback(null);
           }catch(e){
