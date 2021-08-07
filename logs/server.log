@@ -1,0 +1,19 @@
+info: Aug-07-2021 09:52:47: 	Starting server in port 5000
+info: Aug-07-2021 09:54:18: 	Starting server in port 5000
+info: Aug-07-2021 09:54:20: 	Starting server in port 5000
+info: Aug-07-2021 09:54:26: 	Starting server in port 5000
+info: Aug-07-2021 09:54:34: 	Starting server in port 5000
+info: Aug-07-2021 09:54:46: 	Starting server in port 5000
+info: Aug-07-2021 09:54:53: 	Starting server in port 5000
+info: Aug-07-2021 09:57:48: 	Started to update amo contacts
+info: Aug-07-2021 09:58:53: 	Time to update amo contacts in miliseconds: 64764
+info: Aug-07-2021 10:01:07: 	Started to update doli contacts
+info: Aug-07-2021 10:01:18: 	Finished to update doli contacts in ms: 11536
+info: Aug-07-2021 10:03:16: 	newToAmo:trying to getting new users to amo
+info: Aug-07-2021 10:03:17: 	Time to find new users to amo in miliseconds: 573
+info: Aug-07-2021 10:03:17: 	newToAmo: getting new users to amo success
+info: Aug-07-2021 10:03:32: 	newUsers: showing new users
+info: Aug-07-2021 10:03:33: 	Time to find new users to doli in miliseconds: 549
+info: Aug-07-2021 10:03:39: 	newToAmo:trying to getting new users to amo
+info: Aug-07-2021 10:03:39: 	Time to find new users to amo in miliseconds: 530
+info: Aug-07-2021 10:03:39: 	newToAmo: getting new users to amo success
