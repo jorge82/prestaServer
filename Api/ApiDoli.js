@@ -41,11 +41,11 @@ function addContatToDoli(url, token, newUser, numberRetries){
     }, {headers: {'DOLAPIKEY': token }})
 
     .then(response=>{
-        console.log("user with id ", response.data," addded");
+        //console.log("user with id ", response.data," addded");
         return response.data;
     })
     .catch(e=>{
-        console.log("Error adding contact",newUser ,"to doli.");
+        //console.log("Error adding contact",newUser ,"to doli.");
         if(numberRetries){
             if(numberRetries<=0){
                 throw new Error ("Error adding user to doli");    

@@ -17,6 +17,9 @@ const {exportExcel, filterContactData} = require('../utils/utils');
 
 const logger= require('../utils/Logger');
 
+
+"use strict";
+
 const dao = new AppDAO('./database/database.sqlite3')
 
 const conectionRepo = new ConectionRepository(dao)
@@ -893,8 +896,8 @@ async function getNewUsers(callBack){
   
               foundContact=amoUserIsInDoli(doliEmailSet, doliPhoneSet, contact);
               if(!foundContact){
-                console.log("contact phone is:",contact.Phone,"converted is:",convertPhone(contact.Phone));
-                console.log("doli  phone is:",convertPhone('37853092'))
+                // console.log("contact phone is:",contact.Phone,"converted is:",convertPhone(contact.Phone));
+                // console.log("doli  phone is:",convertPhone('37853092'))
                   newUsers.push(contact)
               }
              

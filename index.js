@@ -49,7 +49,15 @@ const combined= require('./routes/amocombinedRoutes');
 app.use(auth(config));
 
 
+const numeral = require('numeral');
+setInterval(()=>{
 
+  const {rss, heapTotal}= process.memoryUsage();
+  logger.info("rss: "+ numeral(rss).format("0.0a") + ", heapTotal: " + numeral(heapTotal).format("0.0a"));
+
+}
+
+,[300000]); //cada 5 minutos
 
 
 const INTERVALODEACTUALIZACIONTOKEN=30600000;
