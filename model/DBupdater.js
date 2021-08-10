@@ -366,7 +366,7 @@ module.exports.addNewContactsToAmo=async function addNewContactsToAmo(users,doli
 }
 
 
-function updateDoliContacts(callback){
+async function updateDoliContacts(callback){
   logger.info("Started to update doli contacts");
   var start = new Date()
     const URLDoli='dbarg.doli.ar/htdocs';
@@ -475,7 +475,7 @@ function updateAmoUsersInRedis(){
     })  
 }
 */
-module.exports.addNewAmoContact=function addNewAmoContact(contact, callback){
+module.exports.addNewAmoContact=async function addNewAmoContact(contact, callback){
   let allTags=[];
   const amoLink="https://jmbere.amocrm.com/contacts/detail/"+contact.id;
   const URLDoli='dbarg.doli.ar/htdocs';
@@ -506,14 +506,14 @@ module.exports.addNewAmoContact=function addNewAmoContact(contact, callback){
 
 }
 //Ver que pasa borrar id de doli
-module.exports.deleteAmoContact=function deleteAmoContact(contact, callback){
+module.exports.deleteAmoContact=async function deleteAmoContact(contact, callback){
   //console.log("trying to delete amo user id", contact.id)
   if(contact.id)
       amoRepo.delete(contact.id).catch(e=>{  
           callback(e);
       });
 }
-module.exports.updateAmoContact=function updateAmoContact(contact,callback){
+module.exports.updateAmoContact=async function updateAmoContact(contact,callback){
   try{
       const amoLink="https://jmbere.amocrm.com/contacts/detail/"+contact.id;
     
@@ -609,7 +609,7 @@ async function addNewContactFromAmoToDoli(contactInfo, callback){
 
 
 
-function updateAmoContacts(numberRetries, callback){
+async function updateAmoContacts(numberRetries, callback){
     logger.info("Started to update amo contacts");
     var start = new Date()
   

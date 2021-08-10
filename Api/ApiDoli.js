@@ -2,7 +2,7 @@
 const axios = require('axios');
 
 
-function getContactsFromDoli(url, token){
+async function getContactsFromDoli(url, token){
     const URL= 'http://'+url+'/api/index.php/thirdparties?limit=100000';
     let datos_actuales=[];
     return axios.get(URL, { headers: { 'DOLAPIKEY': token } })
@@ -20,7 +20,7 @@ function getContactsFromDoli(url, token){
 
 
 
-function addContatToDoli(url, token, newUser, numberRetries){
+async function addContatToDoli(url, token, newUser, numberRetries){
 
     console.log("Adding user:", newUser, "to doli");
     const URL= 'http://'+url+'/api/index.php/thirdparties';

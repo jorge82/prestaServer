@@ -114,7 +114,7 @@ async function addContactsToAmo(url, accessToken, users){
        return response.data;
     })
     .catch(e=>{
-        console.log("Error adding contact to Amo.", e);
+        //console.log("Error adding contact to Amo.", e);
         throw new Error ("Error adding useres to  Amo");
     });
 }

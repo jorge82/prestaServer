@@ -37,7 +37,7 @@ class DoliUsersRepository{
     getByID(id){
         return this.dao.get('SELECT * FROM doliusers WHERE id=?', [id]);
     }
-    getAll() {
+    async getAll() {
         return this.dao.all(`SELECT * FROM doliusers`)
       }
 

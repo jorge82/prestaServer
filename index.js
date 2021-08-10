@@ -1,3 +1,7 @@
+// Before all other 'require' statements:
+require('appmetrics-dash').attach();
+
+
 const express= require('express')
 var compression = require('compression')
 

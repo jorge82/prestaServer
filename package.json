@@ -5,11 +5,12 @@
   "main": "index.js",
   "scripts": {
     "preinstall": "npm i nodemon -g",
-    "start": "nodemon index.js"
+    "start": "nodemon NODE_ENV=production index.js"
   },
   "author": "jorge",
   "license": "ISC",
   "dependencies": {
+    "appmetrics-dash": "^5.3.0",
     "axios": "^0.21.1",
     "bluebird": "^3.7.2",
     "body-parser": "^1.19.0",
