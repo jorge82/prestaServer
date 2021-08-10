@@ -1,1 +1,30 @@
-info: Aug-10-2021 11:28:11: 	Starting server in port 5000
+info: Aug-10-2021 20:00:25: 	Starting server in port 5000
+info: Aug-10-2021 20:00:36: 	newUsers: showing new users
+info: Aug-10-2021 20:00:37: 	Time to find new users to doli in miliseconds: 633
+info: Aug-10-2021 20:00:47: 	Started to update doli contacts
+info: Aug-10-2021 20:05:05: 	newUsers: showing new users
+info: Aug-10-2021 20:05:05: 	Time to find new users to doli in miliseconds: 561
+info: Aug-10-2021 20:05:25: 	rss: 106.4m, heapTotal: 25.8m
+info: Aug-10-2021 20:06:22: 	Started to update doli contacts
+info: Aug-10-2021 20:08:52: 	Finished to update doli contacts in ms: 485427
+info: Aug-10-2021 20:10:25: 	Started to update doli contacts
+info: Aug-10-2021 20:10:25: 	Pinging the server
+info: Aug-10-2021 20:10:25: 	rss: 123.1m, heapTotal: 20.1m
+info: Aug-10-2021 20:12:25: 	Trying to add new users to Amo from doli
+info: Aug-10-2021 20:12:26: 	Time to find new users to amo in miliseconds: 417
+info: Aug-10-2021 20:12:26: 	Success adding new users to Amo from doli
+error: Aug-10-2021 20:12:26: 	ERROR Adding new users to Amo from doli
+info: Aug-10-2021 20:12:27: 	Success adding new users to Amo from doli
+error: Aug-10-2021 20:12:27: 	ERROR Adding new users to Amo from doli
+info: Aug-10-2021 20:15:25: 	rss: 146.1m, heapTotal: 22.7m
+info: Aug-10-2021 20:16:16: 	Finished to update doli contacts in ms: 593718
+info: Aug-10-2021 20:19:40: 	Finished to update doli contacts in ms: 554795
+info: Aug-10-2021 20:19:40: 	Doli contacts successfully updated
+info: Aug-10-2021 20:20:25: 	Started to update doli contacts
+info: Aug-10-2021 20:20:25: 	Pinging the server
+info: Aug-10-2021 20:20:25: 	rss: 176.4m, heapTotal: 19.9m
+info: Aug-10-2021 20:20:51: 	newUsers: showing new users
+info: Aug-10-2021 20:20:51: 	Time to find new users to doli in miliseconds: 637
+info: Aug-10-2021 20:20:53: 	newToAmo:trying to getting new users to amo
+info: Aug-10-2021 20:20:54: 	Time to find new users to amo in miliseconds: 550
+info: Aug-10-2021 20:20:54: 	newToAmo: getting new users to amo success
