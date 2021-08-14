@@ -64,7 +64,7 @@ setInterval(()=>{
 ,[300000]); //cada 5 minutos
 
 
-const INTERVALODEACTUALIZACIONTOKEN=21600000; //cada 6 horas
+const INTERVALODEACTUALIZACIONTOKEN=240000; //cada 4 horas
 setInterval(()=>{updateAmoToken((error)=>{
   if(!error){
     logger.info("Amo token successfully updated");
