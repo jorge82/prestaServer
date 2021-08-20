@@ -1,37 +1,45 @@
 // Before all other 'require' statements:
 //require('appmetrics-dash').attach();
 
+const express = require("express");
+var compression = require("compression");
 
-const express= require('express')
-var compression = require('compression')
-
-
-const {updateAmoToken, addNewAmoContact,deleteAmoContact, updateAmoContact, exportNewToAmo, addNewContactsToAmo ,updatePrestaData, getNewToAmo,updateDoliContacts, updateAmoContacts, addNewContactsToDoli ,exportNew, getNewUsers,getCommonDoliUsers,exportCommonDoli}=require('./model/DBupdater')
-const { convertDoliFormatToAmo} = require("./utils/utils")
+const {
+  updateAmoToken,
+  addNewAmoContact,
+  deleteAmoContact,
+  updateAmoContact,
+  exportNewToAmo,
+  addNewContactsToAmo,
+  updatePrestaData,
+  getNewToAmo,
+  updateDoliContacts,
+  updateAmoContacts,
+  addNewContactsToDoli,
+  exportNew,
+  getNewUsers,
+  getCommonDoliUsers,
+  exportCommonDoli,
+} = require("./model/DBupdater");
+const { convertDoliFormatToAmo } = require("./utils/utils");
 
 const { auth, requiresAuth } = require("express-openid-connect");
 
-const api=require('./Api/ApiPresta');
-var bodyParser = require('body-parser');
-const logger = require('./utils/Logger');
+const api = require("./Api/ApiPresta");
+var bodyParser = require("body-parser");
+const logger = require("./utils/Logger");
 
-
-
-
-const app=express();
-app.use(bodyParser.urlencoded({extended : true}));
+const app = express();
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use(compression());
 
-app.set('view engine' , 'ejs');
+app.set("view engine", "ejs");
 const PORT = process.env.PORT || 5000;
 
-
-require('dotenv').config();
-app.use(express.static(__dirname + '/views'));
-
-
+require("dotenv").config();
+app.use(express.static(__dirname + "/views"));
 
 const config = {
   authRequired: false,
@@ -42,92 +50,122 @@ const config = {
   issuerBaseURL: process.env.ISSUER_BASE_URL,
 };
 
-
-
-const routes = require('./routes/allroutes');
-const amoroutes= require('./routes/amoRoutes');
-const doliroutes= require('./routes/doliroutes');
-const combined= require('./routes/amocombinedRoutes');
+const routes = require("./routes/allroutes");
+const amoroutes = require("./routes/amoRoutes");
+const doliroutes = require("./routes/doliroutes");
+const combined = require("./routes/amocombinedRoutes");
 
 // auth router attaches /login, /logout, and /callback routes to the baseURL
 app.use(auth(config));
 
+const numeral = require("numeral");
+setInterval(() => {
+  const { rss, heapTotal } = process.memoryUsage();
+  logger.info(
+    "rss: " +
+      numeral(rss).format("0.0a") +
+      ", heapTotal: " +
+      numeral(heapTotal).format("0.0a")
+  );
+}, [300000]); //cada 5 minutos
 
-const numeral = require('numeral');
-setInterval(()=>{
+const INTERVALODEACTUALIZACIONTOKEN = 21600000; //cada 6 horas
 
-  const {rss, heapTotal}= process.memoryUsage();
-  logger.info("rss: "+ numeral(rss).format("0.0a") + ", heapTotal: " + numeral(heapTotal).format("0.0a"));
-
-}
-
-,[300000]); //cada 5 minutos
-
-
-const INTERVALODEACTUALIZACIONTOKEN=240000; //cada 4 horas
-setInterval(()=>{updateAmoToken((error)=>{
-  if(!error){
-    logger.info("Amo token successfully updated");
+setInterval(async () => {
+  try {
+    await updateAmoToken();
+  } catch (e) {
+    //console.log(e);
+    logger.info("ERROR updating amo token: ", e);
   }
-})}, INTERVALODEACTUALIZACIONTOKEN);
-const INTERVALODEACTUALIZACIONDOLICONTACTS=600000; //cada 10 minutos
-setInterval(()=>updateDoliContacts((error)=>{
-  if(!error){
-    logger.info("Doli contacts successfully updated");
-  }
-}),[INTERVALODEACTUALIZACIONDOLICONTACTS]);
+}, INTERVALODEACTUALIZACIONTOKEN);
 
+// setInterval(()=>{updateAmoToken((error)=>{
+//   if(!error){
+//     logger.info("Amo token successfully updated");
+//   }
+// })}, INTERVALODEACTUALIZACIONTOKEN);
+const INTERVALODEACTUALIZACIONDOLICONTACTS = 660000; //cada 11 minutos
+setInterval(
+  () =>
+    updateDoliContacts((error) => {
+      if (!error) {
+        logger.info("Doli contacts successfully updated");
+      }
+    }),
+  [INTERVALODEACTUALIZACIONDOLICONTACTS]
+);
 
-const INTERVALODEACTUALIZACIONDOLITOAMO=INTERVALODEACTUALIZACIONDOLICONTACTS + 120000; //cada 12 minutos
-setInterval(()=>{ 
+const INTERVALODEACTUALIZACIONDOLITOAMO =
+  INTERVALODEACTUALIZACIONDOLICONTACTS + 120000; //cada 13 minutos
+
+setInterval(async () => {
   // console.log("Trying to add new users to Amo from doli");
   logger.info("Trying to add new users to Amo from doli");
-  
-      getNewToAmo((newUsers)=>{ 
 
+  getNewToAmo(async (newUsers) => {
+    try {
+      if (newUsers.length > 0) {
+        // console.log("trying to add useers:", newUsers);
+        const amoUsers = newUsers.map((user) => convertDoliFormatToAmo(user));
 
-        if(newUsers.length>0){
-          // console.log("trying to add useers:", newUsers);
-          const amoUsers= newUsers.map(user=>convertDoliFormatToAmo(user));
-        
-          addNewContactsToAmo(amoUsers, newUsers, (error)=>{
-            if (error){
-              logger.error("ERROR Adding new users to Amo from doli");
-            }else{
-              logger.info("Success adding new users to Amo from doli");
-              res.status(200);
-            }
-          });
-        }else{
-          logger.info("Success adding new users to Amo from doli, no new users to add");
-        }
-      });
-  
-},[INTERVALODEACTUALIZACIONDOLITOAMO])
+        const responce = await addNewContactsToAmo(amoUsers, newUsers);
+        logger.info("Success adding new users to Amo from doli");
+      } else {
+        logger.info(
+          "Success adding new users to Amo from doli, no new users to add"
+        );
+      }
+    } catch (e) {
+      logger.error("ERROR Adding new users to Amo from doli");
+    }
+  });
+}, [INTERVALODEACTUALIZACIONDOLITOAMO]);
+// setInterval(() => {
+//   // console.log("Trying to add new users to Amo from doli");
+//   logger.info("Trying to add new users to Amo from doli");
 
+//   getNewToAmo((newUsers) => {
+//     if (newUsers.length > 0) {
+//       // console.log("trying to add useers:", newUsers);
+//       const amoUsers = newUsers.map((user) => convertDoliFormatToAmo(user));
 
+//       addNewContactsToAmo(amoUsers, newUsers, (error) => {
+//         if (error) {
+//           logger.error("ERROR Adding new users to Amo from doli");
+//         } else {
+//           logger.info("Success adding new users to Amo from doli");
+//           res.status(200);
+//         }
+//       });
+//     } else {
+//       logger.info(
+//         "Success adding new users to Amo from doli, no new users to add"
+//       );
+//     }
+//   });
+// }, [INTERVALODEACTUALIZACIONDOLITOAMO]);
 
 //Para que Heroku no apague el servidor
 var http = require("http");
-setInterval(function() {
-    http.get("http://amoserver.herokuapp.com");
-    //http.get("http://localhost:3000");
-    logger.info("Pinging the server");
+setInterval(function () {
+  http.get("http://amoserver.herokuapp.com");
+  //http.get("http://localhost:3000");
+  logger.info("Pinging the server");
 }, 600000); // every 10 minutes (600000)
 
-
 //  Connect all our routes to our application
-app.use('/', routes);
-app.use('/amo', amoroutes);
-app.use('/doli', doliroutes);
-app.use('/combined', combined);
+app.use("/", routes);
+app.use("/amo", amoroutes);
+app.use("/doli", doliroutes);
+app.use("/combined", combined);
 //Error handler
 app.use((error, req, res, next) => {
-  logger.error("Server error 500: " + error.toString() );
+  logger.error("Server error 500: " + error.toString());
   return res.status(500).json({ ServerError: error.toString() });
 });
 
-app.listen(PORT, ()=>{
-    logger.info("Starting server in port " +PORT);
-    console.log("Listening to port", PORT);
-})
+app.listen(PORT, () => {
+  logger.info("Starting server in port " + PORT);
+  console.log("Listening to port", PORT);
+});
