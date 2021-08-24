@@ -312,6 +312,7 @@ function updatePrestaData() {
 //       callback(error);
 //     }
 // }
+const RETRIES = 3;
 async function updateAmoToken() {
   logger.info("updateAmoToken: trying to update amo token");
   console.log("updateAmoToken: trying to update amo token");
@@ -323,7 +324,8 @@ async function updateAmoToken() {
       data.url,
       data.clientId,
       data.clientSecret,
-      data.refreshToken
+      data.refreshToken,
+      RETRIES
     );
     const update = await amoconectionRepo.update(
       data.url,
@@ -331,7 +333,6 @@ async function updateAmoToken() {
       info.refresh_token
     );
   }
-  console.log("returning!!!!");
   return;
   // } catch (e) {
   //   throw e;

@@ -1,8 +1,8 @@
 class AmoUsersRepository {
   constructor(dao) {
     this.dao = dao;
-    // const sql= 'DROP TABLE IF EXISTS amousers';
-    // console.log("dropping amousers")
+    // const sql = "DROP TABLE IF EXISTS amousers";
+    // console.log("dropping amousers");
     // return this.dao.run(sql);
     this.createTable();
   }

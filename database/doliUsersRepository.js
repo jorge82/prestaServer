@@ -1,7 +1,7 @@
 class DoliUsersRepository {
   constructor(dao) {
     this.dao = dao;
-    // const sql= 'DROP TABLE IF EXISTS doliusers';
+    // const sql = "DROP TABLE IF EXISTS doliusers";
     // return this.dao.run(sql);
     this.createTable();
   }

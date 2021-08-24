@@ -21,7 +21,7 @@ const {
   getCommonDoliUsers,
   exportCommonDoli,
 } = require("./model/DBupdater");
-const { convertDoliFormatToAmo } = require("./utils/utils");
+const { convertDoliFormatToAmo, removeFile } = require("./utils/utils");
 
 const { auth, requiresAuth } = require("express-openid-connect");
 
@@ -69,11 +69,12 @@ setInterval(() => {
   );
 }, [300000]); //cada 5 minutos
 
-const INTERVALODEACTUALIZACIONTOKEN = 21600000; //cada 6 horas
+const INTERVALODEACTUALIZACIONTOKEN = 64800000; //cada 18 horas
 
 setInterval(async () => {
   try {
     await updateAmoToken();
+    logger.info("Success updating amo token");
   } catch (e) {
     //console.log(e);
     logger.info("ERROR updating amo token: ", e);
@@ -95,6 +96,11 @@ setInterval(
     }),
   [INTERVALODEACTUALIZACIONDOLICONTACTS]
 );
+
+const INTERVALOBORRADOARCHLOG = 432000000; //cada 5 dias borro el archivo log
+setInterval(() => {
+  removeFile("./logs/server.log");
+}, [INTERVALOBORRADOARCHLOG]);
 
 const INTERVALODEACTUALIZACIONDOLITOAMO =
   INTERVALODEACTUALIZACIONDOLICONTACTS + 120000; //cada 13 minutos
