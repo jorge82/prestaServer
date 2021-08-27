@@ -69,7 +69,7 @@ setInterval(() => {
   );
 }, [300000]); //cada 5 minutos
 
-const INTERVALODEACTUALIZACIONTOKEN = 64800000; //cada 18 horas
+const INTERVALODEACTUALIZACIONTOKEN = 21600000; //cada 6 horas
 
 setInterval(async () => {
   try {
