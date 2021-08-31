@@ -47,7 +47,7 @@
             <th>Nombre completo</th>
             <th>Nombre</th>
             <th>Apellido</th>
-
+            <th>Apodo</th>
             <th>Email</th>
             <th>Telefono</th>
   
@@ -70,6 +70,7 @@
                     <td><%= users[i].name %> </td>
                     <td><%= users[i].firstName %> </td>
                     <td> <%= users[i].lastName %> </td>
+                    <td> <a href=<%= users[i].name_alias %> target="blank"><%= users[i].name_alias %> </a></td>
                     <td><%= users[i].email %> </td>
                     <td> <%= users[i]. phone%> </td>
                  

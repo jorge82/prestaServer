@@ -8,7 +8,7 @@ class DoliUsersRepository {
 
   createTable() {
     const sql =
-      "CREATE TABLE IF NOT EXISTS doliusers ( id INTEGER PRIMARY KEY, name TEXT, firstName TEXT, lastName TEXT,  email TEXT ,phone TEXT , address TEXT, zip TEXT, city  TEXT, country TEXT)";
+      "CREATE TABLE IF NOT EXISTS doliusers ( id INTEGER PRIMARY KEY, name TEXT, firstName TEXT, lastName TEXT, name_alias, email TEXT ,phone TEXT , address TEXT, zip TEXT, city  TEXT, country TEXT)";
     return this.dao.run(sql);
   }
 
@@ -18,6 +18,7 @@ class DoliUsersRepository {
       name,
       firstName,
       lastName,
+      name_alias,
       email,
       phone,
       address,
@@ -26,8 +27,20 @@ class DoliUsersRepository {
       country,
     } = user;
     return this.dao.run(
-      "INSERT INTO doliusers ( id , name , firstName , lastName,  email, phone, address, zip, city, country  ) VALUES (?, ?, ?, ?, ?, ?,?, ?,?,?)",
-      [id, name, firstName, lastName, email, phone, address, zip, city, country]
+      "INSERT INTO doliusers ( id , name , firstName , lastName, name_alias, email, phone, address, zip, city, country  ) VALUES (?, ?, ?, ?, ?, ?, ?,?, ?,?,?)",
+      [
+        id,
+        name,
+        firstName,
+        lastName,
+        name_alias,
+        email,
+        phone,
+        address,
+        zip,
+        city,
+        country,
+      ]
     );
   }
   update(user) {
@@ -36,6 +49,7 @@ class DoliUsersRepository {
       name,
       firstName,
       lastName,
+      name_alias,
       email,
       phone,
       address,
@@ -45,9 +59,27 @@ class DoliUsersRepository {
     } = user;
 
     return this.dao.run(
-      `UPDATE doliusers  SET name = ? , firstName = ?, lastName = ?,  email = ?, phone= ?, address= ?, zip= ?, city= ?, country= ? WHERE  id = ?`,
-      [name, firstName, lastName, email, phone, address, zip, city, country, id]
+      `UPDATE doliusers  SET name = ? , firstName = ?, lastName = ?, name_alias=? , email = ?, phone= ?, address= ?, zip= ?, city= ?, country= ? WHERE  id = ?`,
+      [
+        name,
+        firstName,
+        lastName,
+        name_alias,
+        email,
+        phone,
+        address,
+        zip,
+        city,
+        country,
+        id,
+      ]
     );
+  }
+  updateAmoLink(link, id) {
+    return this.dao.run(`UPDATE doliusers  SET  name_alias=?  WHERE  id = ?`, [
+      link,
+      id,
+    ]);
   }
 
   delete(id) {
@@ -58,6 +90,9 @@ class DoliUsersRepository {
   }
   async getAll() {
     return this.dao.all(`SELECT * FROM doliusers`);
+  }
+  deleteAll() {
+    return this.dao.run(`DELETE  FROM doliusers`);
   }
 }
 

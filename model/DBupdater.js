@@ -62,12 +62,14 @@ module.exports.updateAmoLinkInDoli = async function updateAmoLinkInDoli(
 
   getCommonDoliUsers(async (users) => {
     //doliUsers=users.slice(5000,5210);
-    doliUsers = users;
+    doliUsers = users.filter(
+      (user) => user.name_alias.length === 0 || !user.name_alias
+    );
     const usersToAdd = doliUsers.length;
 
     const userBatch = 10;
-    console.log("# of users to edit", usersToAdd);
-    console.log(" users to edit link", doliUsers);
+    // console.log("# of users to edit", usersToAdd);
+    // console.log(" users to edit link", doliUsers);
     let initialValue = 0;
     let i = 0;
     while (i < usersToAdd) {
@@ -81,15 +83,16 @@ module.exports.updateAmoLinkInDoli = async function updateAmoLinkInDoli(
           promises.push(
             editContactLinkInDoli(URLDoli, TOKENDoli, doliUsers[i])
           );
+          doliRepo.updateAmoLink(doliUsers[i].link, doliUsers[i].id);
         }
       }
 
       try {
         await Promise.all(promises);
-        console.log("Adding users bach", i - userBatch, "-", i - 1);
+        //console.log("Adding users bach", i - userBatch, "-", i - 1);
         initialValue = i;
         if (i >= usersToAdd - 1) {
-          console.log("Finished adding users");
+          //console.log("Finished adding users");
           callback(null);
         }
       } catch (e) {
@@ -441,6 +444,7 @@ module.exports.addNewContactsToAmo = async function addNewContactsToAmo(
 };
 async function updateDoliContacts(callback) {
   logger.info("Started to update doli contacts");
+  // console.log("Started to update doli contacts");
   var start = new Date();
   const URLDoli = "dbarg.doli.ar/htdocs";
   const TOKENDoli = "fp8x6y95";
@@ -448,44 +452,56 @@ async function updateDoliContacts(callback) {
 
   //console.log("Fetching doli contacts!!")
   try {
-    doliRepo.getAll().then((rows) => {
-      datos_actuales = rows;
+    // doliRepo.getAll().then((rows) => {
 
-      getContactsFromDoli(URLDoli, TOKENDoli, TAGDoli)
-        .then((data) => {
-          //console.log("In total there are :",data.length, " contacts")
+    //datos_actuales = rows;
 
-          data.map((contact, index) => {
-            let contactInfo = {
-              id: contact.id,
-              name: contact.name,
-              firstName: contact.firstname,
-              lastName: contact.lastname,
-              email: contact.email,
-              address: contact.address,
-              zip: contact.zip,
-              city: contact.town,
-              country: contact.country,
-              phone: contact.phone,
-            };
+    getContactsFromDoli(URLDoli, TOKENDoli, TAGDoli)
+      .then((data) => {
+        //console.log("In total there are :",data.length, " contacts")
+        const dif1 = new Date() - start;
+        // console.log("Finished getting  doli contacts in ms: " + dif1.toString());
+        doliRepo
+          .deleteAll()
+          .then(() => {
+            data.map((contact, index) => {
+              let contactInfo = {
+                id: contact.id,
+                name: contact.name,
+                firstName: contact.firstname,
+                lastName: contact.lastname,
+                name_alias: contact.name_alias,
+                email: contact.email,
+                address: contact.address,
+                zip: contact.zip,
+                city: contact.town,
+                country: contact.country,
+                phone: contact.phone,
+              };
 
-            let found = datos_actuales.some((el) => el.id == contactInfo.id);
-            if (!found) {
+              // let found = datos_actuales.some((el) => el.id == contactInfo.id);
+              // if (!found) {
               //console.log("pushing:", contactInfo)
               doliRepo.insert(contactInfo);
-            }
+              // }
+            });
+            const dif = new Date() - start;
+            // console.log(
+            //   "Finished to update doli contacts in ms: " + dif1.toString()
+            // );
+            logger.info(
+              "Finished to update doli contacts in ms: " + dif.toString()
+            );
+            //updateDoliUsersInRedis()
+            callback(null);
+          })
+          .catch((error) => {
+            callback(error);
           });
-          const dif = new Date() - start;
-          logger.info(
-            "Finished to update doli contacts in ms: " + dif.toString()
-          );
-          //updateDoliUsersInRedis()
-          callback(null);
-        })
-        .catch((error) => {
-          callback(error);
-        });
-    });
+      })
+      .catch((error) => {
+        callback(error);
+      });
   } catch (error) {
     callback(error);
   }

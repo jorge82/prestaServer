@@ -19,6 +19,7 @@ const {
   exportNew,
   getNewUsers,
   getCommonDoliUsers,
+  updateAmoLinkInDoli,
   exportCommonDoli,
 } = require("./model/DBupdater");
 const { convertDoliFormatToAmo, removeFile } = require("./utils/utils");
@@ -88,10 +89,18 @@ setInterval(async () => {
 // })}, INTERVALODEACTUALIZACIONTOKEN);
 const INTERVALODEACTUALIZACIONDOLICONTACTS = 660000; //cada 11 minutos
 setInterval(
-  () =>
+  async () =>
     updateDoliContacts((error) => {
       if (!error) {
         logger.info("Doli contacts successfully updated");
+      } else {
+        updateAmoLinkInDoli((err) => {
+          if (err) {
+            logger.error("ERROR updating amo links in Doli");
+          } else {
+            logger.info("Amo links successfully updated in Doli");
+          }
+        });
       }
     }),
   [INTERVALODEACTUALIZACIONDOLICONTACTS]
