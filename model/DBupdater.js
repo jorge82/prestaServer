@@ -319,27 +319,27 @@ const RETRIES = 3;
 async function updateAmoToken() {
   logger.info("updateAmoToken: trying to update amo token");
   console.log("updateAmoToken: trying to update amo token");
-  // try {
-  const rows = await amoconectionRepo.getAll();
-  if (rows.length > 0) {
-    data = rows[0];
-    const info = await refreshAccessToken(
-      data.url,
-      data.clientId,
-      data.clientSecret,
-      data.refreshToken,
-      RETRIES
-    );
-    const update = await amoconectionRepo.update(
-      data.url,
-      info.access_token,
-      info.refresh_token
-    );
+  try {
+    const rows = await amoconectionRepo.getAll();
+    if (rows.length > 0) {
+      data = rows[0];
+      const info = await refreshAccessToken(
+        data.url,
+        data.clientId,
+        data.clientSecret,
+        data.refreshToken,
+        RETRIES
+      );
+      const update = await amoconectionRepo.update(
+        data.url,
+        info.access_token,
+        info.refresh_token
+      );
+    }
+    return;
+  } catch (e) {
+    //throw e;
   }
-  return;
-  // } catch (e) {
-  //   throw e;
-  // }
 }
 function addContactsToAmoDB(ids, doliUsers) {
   let amoUsers = doliUsers.map((user, index) => {
@@ -515,7 +515,7 @@ async function addNewContactsToDoli(callback) {
   const TOKENDoli = "fp8x6y95";
   const TAGDoli = "Doli";
 
-  console.log("New doli contacts to fetch!!");
+  //console.log("New doli contacts to fetch!!");
 
   getNewUsers(async (users) => {
     const usersToAdd = users.length;
